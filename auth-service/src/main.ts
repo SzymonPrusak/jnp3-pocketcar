@@ -1,25 +1,29 @@
+import auth from './middleware/auth';
 import express from 'express';
-import { sign } from 'jsonwebtoken';
-import Joi from 'joi';
-import { randomInt } from 'crypto';
-
-import auth from './middleware/auth'
-
+import mongoose from 'mongoose';
+import { router } from './apiRoutes';
+import { validateToken } from './utils/authentication';
 
 const app = express();
 
+app.use(express.json());
+
+app.use(express.urlencoded({ extended: true }));
+
+mongoose.connect('mongodb://root:password@localhost:27017');
+
+const db = mongoose.connection;
+
+if (!db) {
+  console.error('Error connecting to db');
+} else {
+  console.log('Db connected successfully');
+}
+
+app.use('/api', router);
+
 app.get('/', (_, res) => {
   res.send('Server is up!');
-});
-
-app.get('/login', (req, res) => {
-  const login = req.query['login'];
-  const password = req.query['password'];
-  if (login != password) {
-    res.send(401);
-  }
-
-  res.send(generateToken(login));
 });
 
 app.get('/useApi', auth, (req, res) => {
@@ -29,18 +33,5 @@ app.get('/useApi', auth, (req, res) => {
   }
   res.send('Hello ' + req.userToken.login + ' ' + req.userToken.id);
 });
-
-const generateToken = function(login) {
-  const token = sign({ id: randomInt(1000), login: login}, 'aaaabbbbcccc');
-  return token;
-}
-
-const validateToken = function(token) {
-  const schema = Joi.object({
-    id: Joi.number().required(),
-    name: Joi.string().required()
-  });
-  return schema.validate(token);
-}
 
 app.listen(3000);
