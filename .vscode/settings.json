@@ -1,4 +1,4 @@
 {
-  "eslint.workingDirectories": ["cars-service/"],
+  "eslint.workingDirectories": ["cars-service/", "auth-service/"],
   "cSpell.words": ["keycloak"]
 }
