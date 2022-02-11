@@ -1,0 +1,4 @@
+{
+  "eslint.workingDirectories": ["cars-service/"],
+  "cSpell.words": ["keycloak"]
+}
