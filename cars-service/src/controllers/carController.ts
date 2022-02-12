@@ -8,6 +8,7 @@ export class CarController {
     const token = req.userToken;
     if (!token) {
       res.sendStatus(401);
+      return;
     }
 
     CarAccessModel.find({ userId: token.id })
@@ -47,7 +48,7 @@ export class CarController {
       ...value,
       book: carBook
     });
-    
+
     car.save((err, car) => {
       if (err) {
         res.status(500).send({ message: err });
@@ -57,7 +58,7 @@ export class CarController {
         res.status(500).send({ message: 'Could not create car' });
         return;
       }
-  
+
       const carAccess = new CarAccessModel({
         car: car._id,
         userId: token.id,
@@ -67,15 +68,16 @@ export class CarController {
       car.save();
       carBook.save();
       carAccess.save();
-      
+
       res.status(200).json(car);
     });
   }
 
-  public static updateCar(req: Request, res: Response) {
+  public static async updateCar(req: Request, res: Response) {
     const token = req.userToken;
     if (!token) {
       res.sendStatus(401);
+      return;
     }
 
     const { error, value } = validateCarUpdate(req.body);
@@ -85,9 +87,17 @@ export class CarController {
     }
     const bookJson = value.book;
 
-    CarModel.findOneAndUpdate(value._id, value).exec();
+    const access = await CarAccessModel.findOne({ car: value._id, userId: token.id })
+      .exec();
+    
+    if (!access || access.role == 'viewer') {
+      res.sendStatus(403);
+      return;
+    }
+
+    CarModel.findByIdAndUpdate(value._id, value).exec();
     if (bookJson) {
-      CarBookModel.findOneAndUpdate(bookJson._id, bookJson).exec();
+      CarBookModel.findByIdAndUpdate(bookJson._id, bookJson).exec();
     }
     res.sendStatus(200);
   }
@@ -96,10 +106,11 @@ export class CarController {
     const token = req.userToken;
     if (!token) {
       res.sendStatus(401);
+      return;
     }
 
     const { carId } = req.params;
-    
+
     CarModel.findById(carId)
       .exec(async (err, car) => {
         if (err) {
@@ -108,16 +119,12 @@ export class CarController {
         if (!car) {
           return res.sendStatus(404);
         }
-        
-        let canRemove = true;
-        await CarAccessModel.findOne({ car: car._id, userId: token.id })
-          .exec((err, access) => {
-            if (err || !access || access.role != 'owner') {
-              canRemove = false;
-            }
-          });
-        if (!canRemove) {
-          return res.sendStatus(401);
+
+        const access = await CarAccessModel.findOne({ car: car._id, userId: token.id })
+          .exec();
+
+        if (!access || access.role != 'owner') {
+          return res.sendStatus(403);
         }
 
         CarAccessModel.deleteMany({ car: car._id }).exec();

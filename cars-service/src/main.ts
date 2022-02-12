@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import { router } from './apiRoutes';
+import { carRouter } from './routes/carRoutes';
+import { accessRouter } from './routes/accessRoutes';
 
 const mongooseLogin = 'root';
 const mongoosePassword = 'password';
@@ -22,7 +23,8 @@ if (!db) {
   console.log('Db connected successfully');
 }
 
-app.use('/api', router)
+app.use('/car', carRouter);
+app.use('/access', accessRouter);
 
 app.get('/', (_, res) => {
   res.send('Server is up!');
