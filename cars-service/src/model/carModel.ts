@@ -46,13 +46,13 @@ export const CarBookModel = model<CarBook>('CarBook', carBookSchema);
 
 export interface CarAccess extends Document {
   car: Schema.Types.ObjectId | Car;
-  userId: number;
+  userId: string;
   role: string;
 }
 
 const carAccessSchema = new Schema<CarAccess>({
   car: { type: Schema.Types.ObjectId, ref: 'Car', required: true },
-  userId: { type: Number, required: true },
+  userId: { type: String, required: true },
   role: { type: String, required: true },
 });
 
