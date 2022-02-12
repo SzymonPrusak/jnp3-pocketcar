@@ -105,3 +105,4 @@ dist
 
 auth-service/build
 cars-service/build
+notification-service/build
