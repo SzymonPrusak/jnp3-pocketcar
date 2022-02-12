@@ -1,29 +1,7 @@
 import { Request, Response } from 'express';
-import Joi from 'joi';
 import { CarModel, CarAccessModel, CarBookModel } from '../model/carModel';
+import { validateNewCar, validateCarUpdate } from '../utils/carSchema';
 
-
-const carBookSchema = Joi.object({
-  licensePlate: Joi.string().required(),
-  mileage: Joi.number().required(),
-  nextServiceDate: Joi.string().required(),
-  lastServiceMileage: Joi.number().required()
-});
-
-const carSchema = Joi.object({
-  name: Joi.string().required(),
-  productionYear: Joi.number().required(),
-  generation: Joi.string().required(),
-  engine: Joi.string().required(),
-  carModelName: Joi.string().required(),
-  makeName: Joi.string().required(),
-  vinNumber: Joi.string().required(),
-  book: carBookSchema
-});
-
-const validateCar = (car) => {
-  return carSchema.validate(car);
-}
 
 export class CarController {
   public static listCars(req: Request, res: Response) {
@@ -57,27 +35,16 @@ export class CarController {
       return;
     }
 
-    const { error, value } = validateCar(req.body);
+    const { error, value } = validateNewCar(req.body);
     if (error) {
       res.status(400).send({ message: error });
       return;
     }
     const bookJson = value.book;
 
-    const carBook = new CarBookModel({
-      licensePlate: bookJson.licensePlate,
-      mileage: bookJson.mileage,
-      nextServiceDate: bookJson.nextServiceDate,
-      lastServiceMileage: bookJson.lastServiceMileage
-    });
+    const carBook = new CarBookModel(bookJson);
     const car = new CarModel({
-      name: value.name,
-      productionYear: value.productionYear,
-      generation: value.generation,
-      engine: value.engine,
-      carModelName: value.carModelName,
-      makeName: value.makeName,
-      vinNumber: value.vinNumber,
+      ...value,
       book: carBook
     });
     
@@ -102,7 +69,7 @@ export class CarController {
       carAccess.save();
       
       res.status(200).json(car);
-    })
+    });
   }
 
   public static updateCar(req: Request, res: Response) {
@@ -110,6 +77,19 @@ export class CarController {
     if (!token) {
       res.sendStatus(401);
     }
+
+    const { error, value } = validateCarUpdate(req.body);
+    if (error) {
+      res.status(400).send({ message: error });
+      return;
+    }
+    const bookJson = value.book;
+
+    CarModel.findOneAndUpdate(value._id, value).exec();
+    if (bookJson) {
+      CarBookModel.findOneAndUpdate(bookJson._id, bookJson).exec();
+    }
+    res.sendStatus(200);
   }
 
   public static deleteCar(req: Request, res: Response) {
