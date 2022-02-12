@@ -2,7 +2,7 @@ import { Alert, Dimensions, ScrollView, Text, View } from 'react-native'
 import { GetCarsService, UpdateCarService } from '@/Services/Cars'
 import { Modal, Portal } from 'react-native-paper'
 import { OnboardingModal, SingleTile } from '@/Components'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 import Car from '@/Store/User/Car'
@@ -43,7 +43,7 @@ const CarOverviewContainer = ({ navigation }) => {
     fetchCars()
   }, [sessionToken, fetchCars])
 
-  const fetchCars = useEffect(() => {
+  const fetchCars = useCallback(() => {
     GetCarsService(sessionToken).then((cars) => {
       if (cars.length === 0) {
         setOnboardingModalVisible(true)

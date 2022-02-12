@@ -10,7 +10,7 @@ export default async (sessionToken, carId, expense) => {
   }
 
   const response = await api.post(`Expense/${carId}/New`, expense, {
-    headers: { Authorization: `Bearer ${sessionToken}` },
+    headers: { 'x-auth-token': sessionToken },
   })
 
   return response.data

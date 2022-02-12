@@ -1,11 +1,12 @@
-import React, { useState } from 'react'
-import { View, Dimensions, LayoutAnimation, Text } from 'react-native'
-import { useTheme } from '@/Theme'
-import { SingleTile } from '@/Components'
-import { TextInput, Button } from 'react-native-paper'
-import { useDispatch } from 'react-redux'
+import { Button, TextInput } from 'react-native-paper'
+import { Dimensions, LayoutAnimation, Text, View } from 'react-native'
 import { LoginUserService, RegisterUserService } from '@/Services/User'
+import React, { useState } from 'react'
+
 import SessionToken from '@/Store/User/SessionToken'
+import { SingleTile } from '@/Components'
+import { useDispatch } from 'react-redux'
+import { useTheme } from '@/Theme'
 
 const AuthenticationContainer = () => {
   const [signInMode, setSignInMode] = useState(true)
@@ -38,10 +39,8 @@ const AuthenticationContainer = () => {
       setError(true)
     }
 
-    console.log(res)
-
-    if (res != null) {
-      dispatch(SessionToken.action({ sessionToken: res }))
+    if (res != null && res.token) {
+      dispatch(SessionToken.action({ sessionToken: res.token }))
     }
   }
 

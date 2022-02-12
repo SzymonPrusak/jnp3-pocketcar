@@ -10,7 +10,7 @@ export default async (sessionToken, carId) => {
   }
 
   const response = await api.get(`Expense/${carId}`, {
-    headers: { Authorization: `Bearer ${sessionToken}` },
+    headers: { 'x-auth-token': sessionToken },
   })
 
   return response.data

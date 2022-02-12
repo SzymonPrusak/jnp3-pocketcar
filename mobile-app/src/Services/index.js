@@ -1,8 +1,6 @@
 import axios from 'axios'
-import { Config } from '@/Config'
 
 const instance = axios.create({
-  baseURL: Config.API_URL,
   headers: {
     Accept: 'application/json',
     'Content-Type': 'application/json',
@@ -21,7 +19,7 @@ instance.interceptors.response.use(
   },
 )
 
-instance.interceptors.request.use(request => {
+instance.interceptors.request.use((request) => {
   console.log('Starting request:', JSON.stringify(request, null, 2))
   return request
 })

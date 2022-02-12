@@ -1,19 +1,19 @@
-import React, { useState } from 'react'
+import { Button, Card, TextInput } from 'react-native-paper'
 import {
-  View,
-  Text,
-  ScrollView,
   Keyboard,
-  StyleSheet,
   Modal,
   SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native'
-import { useTheme } from '@/Theme'
-import { TextInput, Card, Button } from 'react-native-paper'
-import TextInputMask from 'react-native-text-input-mask'
-import DatePicker from 'react-native-date-picker'
+import React, { useState } from 'react'
 
+import DatePicker from 'react-native-date-picker'
 import { NewCarService } from '@/Services/Cars'
+import TextInputMask from 'react-native-text-input-mask'
+import { useTheme } from '@/Theme'
 
 const TextField = (props) => (
   <TextInput mode={'outlined'} style={{ marginBottom: 5 }} {...props} />
@@ -32,14 +32,18 @@ const OnboardingModal = ({ sessionToken, visible, setVisible, onSuccess }) => {
   const [insurancePhoneNumber, setInsurancePhoneNumber] = useState('')
 
   const [kilometrage, setKilometrage] = useState('')
-  const [kilometrageAtLastOilChange, setKilometrageAtLastOilChange] = useState(
-    '',
-  )
+  const [kilometrageAtLastOilChange, setKilometrageAtLastOilChange] =
+    useState('')
   const [nextServiceCheckupDate, setNextServiceCheckupDate] = useState(
     new Date(),
   )
 
   const addNewCar = () => {
+    let newCar = {
+      name: licensePlate,
+      productionYear,
+    }
+
     let carObject = {
       name: licensePlate,
       prodYear: 2010,
@@ -170,7 +174,12 @@ const OnboardingModal = ({ sessionToken, visible, setVisible, onSuccess }) => {
                   >
                     Next service checkup date:
                   </Text>
-                  <DatePicker date={nextServiceCheckupDate} onDateChange={setNextServiceCheckupDate} style={{ alignSelf: 'center' }} mode="date" />
+                  <DatePicker
+                    date={nextServiceCheckupDate}
+                    onDateChange={setNextServiceCheckupDate}
+                    style={{ alignSelf: 'center' }}
+                    mode="date"
+                  />
                 </View>
               </Card.Content>
             </Card>
@@ -206,7 +215,12 @@ const OnboardingModal = ({ sessionToken, visible, setVisible, onSuccess }) => {
                   >
                     Insurance expiry date:
                   </Text>
-                  <DatePicker date={insuranceDeadline} onDateChange={setInsuranceDeadline} style={{ alignSelf: 'center' }} mode="date" />
+                  <DatePicker
+                    date={insuranceDeadline}
+                    onDateChange={setInsuranceDeadline}
+                    style={{ alignSelf: 'center' }}
+                    mode="date"
+                  />
                 </View>
               </Card.Content>
             </Card>
