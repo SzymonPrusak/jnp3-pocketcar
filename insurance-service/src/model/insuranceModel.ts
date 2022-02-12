@@ -19,6 +19,7 @@ const insuranceSchema = new Schema<Insurance>({
     contactNumber: { type: String, required: true },
     validFrom: { type: Date, required: true },
     validUntil: { type: Date, required: true },
+    carId: { type: String, required: true },
 });
 
 export const InsuranceModel = model<Insurance>('Insurance', insuranceSchema);
