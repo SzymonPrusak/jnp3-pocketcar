@@ -16,19 +16,15 @@ export class InsurenceController {
 
   public static addInsurance(req: Request, res: Response) {
     const { error, value } = validateAddInsurance(req.body);
+    const { carId } = req.params;
     if (error) {
       res.status(400).send({ message: error });
       return;
     }
 
     const insurance = new InsuranceModel({
-      insuranceNumber: value.insuranceNumber,
-      cost: value.cost,
-      company: value.company,
-      scope: value.scope,
-      contactNumber: value.contractNumber,
-      validFrom: value.validFrom,
-      validUntil: value.validUntil
+      ...value,
+      carId
     });
     
     insurance.save((err, car) => {

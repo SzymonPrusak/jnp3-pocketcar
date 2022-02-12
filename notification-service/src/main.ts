@@ -23,7 +23,7 @@ app.get('/', (_, res) => {
   res.send('Server is up!');
 });
 
-app.listen(3001);
+app.listen(3003);
 
 eventRedisClient.subscribe('registration', (msg, ch) => {
   console.log(ch + " " + msg);
