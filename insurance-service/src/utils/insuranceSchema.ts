@@ -7,7 +7,8 @@ const insuranceAddSchema = Joi.object({
     scope: Joi.string().required(),
     contactNumber: Joi.number().required(),
     validFrom: Joi.date().required(),
-    validUntil: Joi.date().required()
+    validUntil: Joi.date().required(),
+    carId: Joi.string().required(),
   });
   
   export const validateAddInsurance = (insurance) => {
@@ -15,6 +16,7 @@ const insuranceAddSchema = Joi.object({
   }
   
   const insuranceUpdateSchema = Joi.object({
+    _id: Joi.string().optional(),
     carId: Joi.string().required(),
     insuranceNumber: Joi.string().optional(),
     cost: Joi.number().optional(),

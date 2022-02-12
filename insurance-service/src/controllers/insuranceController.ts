@@ -6,17 +6,12 @@ export class InsurenceController {
   public static getInsurance(req: Request, res: Response) {
     const { carId } = req.params;
 
-    InsuranceModel.findOne({ carId })
-      .populate({
-        path: 'insurance',
-        model: 'Insurance',
-      })
-      .exec((err, insurance) => {
-        if (err) {
-          return res.status(500).send({ message: err });
-        }
-        return res.status(200).json(insurance);
-      });
+    InsuranceModel.findOne({ carId }, (err, insurance) => {
+      if (err) {
+        return res.status(500).send({ message: err });
+      }
+      return res.status(200).json(insurance);
+    });
   }
 
   public static addInsurance(req: Request, res: Response) {
