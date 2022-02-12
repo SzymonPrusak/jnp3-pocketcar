@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { CarModel, CarAccessModel, CarBookModel } from '../model/carModel';
+import { CarModel, CarAccessModel, CarBookModel, getAccesses, dropCacheAccesses } from '../model/carModel';
 import { validateNewCar, validateCarUpdate } from '../utils/carSchema';
 
 
@@ -87,8 +87,8 @@ export class CarController {
     }
     const bookJson = value.book;
 
-    const access = await CarAccessModel.findOne({ car: value._id, userId: token.id })
-      .exec();
+    const access = (await getAccesses(value._id))
+      .find(a => a.userId = token.id);
     
     if (!access || access.role == 'viewer') {
       res.sendStatus(403);
@@ -120,16 +120,19 @@ export class CarController {
           return res.sendStatus(404);
         }
 
-        const access = await CarAccessModel.findOne({ car: car._id, userId: token.id })
-          .exec();
+        const access = (await getAccesses(car._id))
+          .find(a => a.userId == token.id);
 
         if (!access || access.role != 'owner') {
           return res.sendStatus(403);
         }
 
-        CarAccessModel.deleteMany({ car: car._id }).exec();
-        CarBookModel.deleteOne({ _id: car.book }).exec();
-        car.delete();
+        dropCacheAccesses(car._id)
+          .then(() => {
+            CarAccessModel.deleteMany({ car: car._id }).exec();
+            CarBookModel.deleteOne({ _id: car.book }).exec();
+            car.delete();
+          })
         return res.sendStatus(200);
       });
   }

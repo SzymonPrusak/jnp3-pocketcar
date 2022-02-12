@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { CarAccessModel } from '../model/carModel';
+import { CarAccessModel, dropCacheAccesses, getAccesses } from '../model/carModel';
 
 
 export class AccessController {
-  public static listAccess(req: Request, res: Response) {
+  public static async listAccess(req: Request, res: Response) {
     const token = req.userToken;
     if (!token) {
       res.sendStatus(401);
@@ -17,29 +17,22 @@ export class AccessController {
       return;
     }
 
-    CarAccessModel.find({ car: carId })
-      .exec((err, accesses) => {
-        if (err) {
-          res.status(500).send({ message: err });
-          return;
-        }
+    const accesses = await getAccesses(carId);
+    const userAccess = accesses.find(a => a.userId == token.id);
+    if (!userAccess) {
+      res.sendStatus(403);
+      return;
+    }
 
-        const userAccess = accesses.find(a => a.userId == token.id);
-        if (!userAccess) {
-          res.sendStatus(403);
-          return;
-        }
-
-        if (userAccess.role == 'owner' && !userOnly) {
-          res.status(200).json(accesses);
-        }
-        else {
-          res.status(200).json([ userAccess ]);
-        }
-      });
+    if (userAccess.role == 'owner' && !userOnly) {
+      res.status(200).json(accesses);
+    }
+    else {
+      res.status(200).json([ userAccess ]);
+    }
   }
 
-  public static addAccess(req: Request, res: Response) {
+  public static async addAccess(req: Request, res: Response) {
     const token = req.userToken;
     if (!token) {
       res.sendStatus(401);
@@ -53,33 +46,27 @@ export class AccessController {
       return;
     }
 
-    CarAccessModel.find({ car: carId })
-      .exec((err, accesses) => {
-        if (err) {
-          res.status(500).send({ message: err });
-          return;
-        }
+    const accesses = await getAccesses(carId);
+    const userAccess = accesses.find(a => a.userId == token.id);
+    if (!userAccess || userAccess.role != 'owner') {
+      res.sendStatus(403);
+      return;
+    }
 
-        const userAccess = accesses.find(a => a.userId == token.id);
-        if (!userAccess || userAccess.role != 'owner') {
-          res.sendStatus(403);
-          return;
-        }
+    if (accesses.find(a => a.userId == userId)) {
+      res.sendStatus(400);
+      return;
+    }
 
-        if (accesses.find(a => a.userId == userId)) {
-          res.sendStatus(400);
-          return;
-        }
+    await dropCacheAccesses(carId);
+    const access = new CarAccessModel({
+      car: carId,
+      userId,
+      role
+    });
+    access.save();
 
-        const access = new CarAccessModel({
-          car: carId,
-          userId,
-          role
-        });
-        access.save();
-
-        res.status(200).json(access);
-      });
+    res.status(200).json(access);
   }
 
   public static deleteAccess(req: Request, res: Response) {
@@ -125,8 +112,11 @@ export class AccessController {
               return;
             }
 
-            access.delete();
-            res.sendStatus(200);
+            dropCacheAccesses(access.car.toString())
+              .then(() => {
+                access.delete();
+                res.sendStatus(200);
+              });
           });
       });
   }

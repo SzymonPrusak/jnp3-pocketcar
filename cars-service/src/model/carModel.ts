@@ -1,4 +1,5 @@
 import { Schema, model, Document } from 'mongoose'
+import { redisClient } from '../utils/redisCon';
 
 
 interface Car extends Document {
@@ -43,7 +44,7 @@ const carBookSchema = new Schema<CarBook>({
 export const CarBookModel = model<CarBook>('CarBook', carBookSchema);
 
 
-interface CarAccess extends Document {
+export interface CarAccess extends Document {
   car: Schema.Types.ObjectId | Car;
   userId: number;
   role: string;
@@ -56,3 +57,29 @@ const carAccessSchema = new Schema<CarAccess>({
 });
 
 export const CarAccessModel = model<CarAccess>('CarAccess', carAccessSchema);
+
+
+const accessCacheTimeout = 120;
+
+export const getAccesses = async (carId: string) => {
+  const redisKey = `car_access_${carId}`;
+  const accJson = await redisClient.get(redisKey);
+
+  if (!accJson) {
+    const models = await CarAccessModel.find({ car: carId }).exec();
+    
+    redisClient.set(redisKey, JSON.stringify(models))
+      .then(() => redisClient.expire(redisKey, accessCacheTimeout));
+    
+    return models;
+  }
+  else {
+    const models: CarAccess[] = JSON.parse(accJson);
+    redisClient.expire(redisKey, accessCacheTimeout);
+    return models;
+  }
+};
+
+export const dropCacheAccesses = async (carId: string) => {
+  await redisClient.del(`car_access_${carId}`);
+};
