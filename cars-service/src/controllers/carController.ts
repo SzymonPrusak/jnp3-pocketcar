@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { CarModel, CarAccessModel, CarBookModel, getAccesses, dropCacheAccesses } from '../model/carModel';
 import { validateNewCar, validateCarUpdate } from '../utils/carSchema';
+import { eventRedisClient } from '../utils/redisCon';
 
 
 export class CarController {
@@ -70,6 +71,12 @@ export class CarController {
       carAccess.save();
 
       res.status(200).json(car);
+
+      const eventArgs = {
+        userId: token.id,
+        car: car
+      };
+      eventRedisClient.publish('car_added', JSON.stringify(eventArgs));
     });
   }
 
