@@ -1,7 +1,7 @@
+import { accessRouter } from './routes/accessRoutes';
+import { carRouter } from './routes/carRoutes';
 import express from 'express';
 import mongoose from 'mongoose';
-import { carRouter } from './routes/carRoutes';
-import { accessRouter } from './routes/accessRoutes';
 
 const mongooseLogin = 'root';
 const mongoosePassword = 'password';
@@ -13,7 +13,9 @@ app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
 
-mongoose.connect(`mongodb://${mongooseLogin}:${mongoosePassword}@${mongooseUrl}`);
+mongoose.connect(
+  `mongodb://${mongooseLogin}:${mongoosePassword}@${mongooseUrl}`,
+);
 
 const db = mongoose.connection;
 
@@ -30,4 +32,4 @@ app.get('/', (_, res) => {
   res.send('Server is up!');
 });
 
-app.listen(3000);
+app.listen(3001);
