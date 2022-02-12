@@ -1,8 +1,12 @@
 import { Request, Response } from 'express';
-import { generateToken, validateToken } from '../utils/authentication';
-
-import { User } from '../model/userModel';
 import bcrypt from 'bcryptjs';
+import fetch from 'node-fetch';
+
+import { generateToken, validateToken } from '../utils/authentication';
+import { User } from '../model/userModel';
+import { notificationServiceHost } from '../const/hosts';
+import { eventRedisClient } from '../utils/redisCon';
+
 
 export class AuthController {
   public static login(req: Request, res: Response) {
@@ -29,7 +33,7 @@ export class AuthController {
       return res.status(200).send({
         id: user._id,
         username: user.username,
-        token: generateToken(username),
+        token: generateToken(user._id, username),
       });
     });
   }
@@ -45,19 +49,40 @@ export class AuthController {
 
     user.save((err, user) => {
       if (err) {
-        return res.status(500).send({ message: err });
+        res.status(500).send({ message: err });
+        return;
       }
 
       if (!user) {
-        return res.status(500).send({ message: 'Could not create user' });
+        res.status(500).send({ message: 'Could not create user' });
+        return;
       }
 
-      return res.status(200).send({
+      const token = generateToken(user._id, username);
+      res.status(200).send({
         id: user._id,
         username: user.username,
-        token: generateToken(username),
+        token,
       });
-    });
+
+      const settings = [{
+        userId: user._id,
+        name: 'email',
+        data: email,
+        isEnabled: true
+      }];
+      
+      fetch(`http://${notificationServiceHost}/notificationSettings`, {
+        method: 'post',
+        body: JSON.stringify(settings),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token 
+        }
+      }).then(() => {
+          eventRedisClient.publish('registration', JSON.stringify(user));
+        });
+    })
   }
 
   public static test(req: Request, res: Response) {

@@ -1,9 +1,8 @@
 import Joi from 'joi';
-import { randomInt } from 'crypto';
 import { sign } from 'jsonwebtoken';
 
-export const generateToken = function (login) {
-  const token = sign({ id: randomInt(1000), login: login }, 'aaaabbbbcccc');
+export const generateToken = function (id, login) {
+  const token = sign({ id: id, login: login }, 'aaaabbbbcccc');
   return token;
 };
 

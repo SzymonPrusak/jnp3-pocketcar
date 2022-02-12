@@ -3,15 +3,13 @@ import express from 'express';
 import mongoose from 'mongoose';
 import { router } from './apiRoutes';
 import { validateToken } from './utils/authentication';
+import { databaseHost, databasePassword, databaseUsername } from './const/database';
 
 const app = express();
-
 app.use(express.json());
-
 app.use(express.urlencoded({ extended: true }));
 
-mongoose.connect('mongodb://root:password@localhost:27017');
-
+mongoose.connect(`mongodb://${databaseUsername}:${databasePassword}@${databaseHost}`);
 const db = mongoose.connection;
 
 if (!db) {
