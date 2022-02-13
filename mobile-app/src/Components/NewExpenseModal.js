@@ -18,6 +18,7 @@ const NewExpenseModal = ({ visible, setVisible, onExpenseAdd }) => {
       name,
       cost,
       date,
+      type,
     }
 
     onExpenseAdd(expenseObj)

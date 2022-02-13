@@ -6,7 +6,6 @@ import { ScrollView, StyleSheet, View } from 'react-native'
 import { carSelector, expensesSelector, fetchExpenses } from '../../Store/Cars'
 import { useDispatch, useSelector } from 'react-redux'
 
-import Expenses from '@/Store/User/Expenses'
 import { FlatList } from 'react-native-gesture-handler'
 import { useTheme } from '@/Theme'
 
@@ -23,7 +22,7 @@ const ExpensesContainer = () => {
 
   useEffect(() => {
     dispatch(fetchExpenses())
-  }, [dispatch])
+  }, [dispatch, carId])
 
   const renderItem = ({ item }) => (
     <ExpenseRow

@@ -2,6 +2,7 @@ import { GetCarsService, NewCarService } from '../../Services/Cars'
 import { createAsyncThunk, createSelector, createSlice } from '@reduxjs/toolkit'
 
 import GetExpenses from '../../Services/Expenses/GetExpenses'
+import { GetInsurancesService } from '../../Services/Insurances'
 
 const initialState = {
   currentCarId: null,
@@ -37,6 +38,24 @@ export const fetchExpenses = createAsyncThunk(
       return expenses
     } catch (e) {
       return thunkApi.rejectWithValue([])
+    }
+  },
+)
+
+export const fetchInsurances = createAsyncThunk(
+  'cars/fetchInsurances',
+  async (_, thunkApi) => {
+    try {
+      const carId = thunkApi.getState().cars.currentCarId
+
+      if (!carId) {
+        return thunkApi.rejectWithValue(null)
+      }
+
+      const insurance = await GetInsurancesService(carId)
+      return insurance
+    } catch (e) {
+      return thunkApi.rejectWithValue(null)
     }
   },
 )
@@ -81,6 +100,9 @@ export const carsSlice = createSlice({
       state.all.push(action.payload)
       state.currentCarId = action.payload._id
     })
+    builder.addCase(fetchInsurances.fulfilled, (state, action) => {
+      state.insurances[state.currentCarId] = action.payload
+    })
   },
 })
 
@@ -100,7 +122,7 @@ export const expensesSelector = createSelector(
   (cars) => cars.expenses[cars.currentCarId] ?? [],
 )
 
-export const insurancesSelector = createSelector(
+export const insuranceSelector = createSelector(
   carsSelector,
-  (cars) => cars.insurances[cars.currentCarId] ?? [],
+  (cars) => cars.insurances[cars.currentCarId],
 )

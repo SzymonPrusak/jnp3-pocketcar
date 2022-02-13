@@ -1,10 +1,10 @@
 import { Appbar, Button, Card } from 'react-native-paper'
 import { Modal, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native'
 import React, { useState } from 'react'
+import { fetchExpenses, fetchInsurances, setCurrentCarId } from '../Store/Cars'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { CarRow } from '.'
-import { setCurrentCarId } from '../Store/Cars'
 import { useTheme } from '@/Theme'
 
 const CarSelectModal = ({ visible, setVisible, onAddNewCarPress }) => {
@@ -16,6 +16,8 @@ const CarSelectModal = ({ visible, setVisible, onAddNewCarPress }) => {
   const onCarSelect = React.useCallback(
     (car) => {
       dispatch(setCurrentCarId(car._id))
+      dispatch(fetchExpenses())
+      dispatch(fetchInsurances())
       setVisible(false)
     },
     [dispatch, setVisible],

@@ -7,6 +7,8 @@ import {
   expensesSelector,
   fetchCars,
   fetchExpenses,
+  fetchInsurances,
+  insuranceSelector,
 } from '../../Store/Cars'
 import { useDispatch, useSelector } from 'react-redux'
 
@@ -24,6 +26,8 @@ const CarOverviewContainer = ({ navigation }) => {
   const loadedCars = useSelector((state) => state.cars.loadingFulfilled)
   const car = useSelector(carSelector)
   const expenses = useSelector(expensesSelector)
+
+  const insurance = useSelector(insuranceSelector)
 
   const dispatch = useDispatch()
 
@@ -45,6 +49,7 @@ const CarOverviewContainer = ({ navigation }) => {
   useEffect(() => {
     dispatch(fetchCars())
     dispatch(fetchExpenses())
+    dispatch(fetchInsurances())
   }, [dispatch])
 
   useEffect(() => {
@@ -54,7 +59,7 @@ const CarOverviewContainer = ({ navigation }) => {
   }, [loadedCars, car])
 
   const updateCar = (carObj) => {
-    UpdateCarService(carObj).then(fetchCars)
+    UpdateCarService(carObj).then(() => dispatch(fetchCars()))
   }
 
   const onKilometrageTilePress = () => {
@@ -65,16 +70,16 @@ const CarOverviewContainer = ({ navigation }) => {
       },
       {
         text: 'Update',
-        onPress: (newKilometrage) => {
-          const carCopy = JSON.parse(JSON.stringify(car))
+        onPress: (newMileage) => {
+          const updates = {
+            _id: car._id,
+            book: {
+              _id: car.book._id,
+              mileage: parseInt(newMileage),
+            },
+          }
 
-          carCopy.engine.id = null
-          carCopy.engine.make.id = null
-          carCopy.generation.id = null
-          carCopy.generation.model.id = null
-          carCopy.generation.model.make.id = null
-          carCopy.stateBook.mileage = newKilometrage
-          updateCar(carCopy)
+          updateCar(updates)
         },
       },
     ])
@@ -111,11 +116,15 @@ const CarOverviewContainer = ({ navigation }) => {
       {
         text: 'Update',
         onPress: (newDate) => {
-          const carCopy = JSON.parse(JSON.stringify(car))
+          const updates = {
+            _id: car._id,
+            book: {
+              _id: car.book._id,
+              nextServiceDate: new Date(newDate),
+            },
+          }
 
-          carCopy.book.nextServiceDate = newDate
-
-          updateCar(carCopy)
+          updateCar(updates)
         },
       },
     ])
@@ -130,11 +139,15 @@ const CarOverviewContainer = ({ navigation }) => {
       {
         text: 'Update',
         onPress: (newMileage) => {
-          const carCopy = JSON.parse(JSON.stringify(car))
+          const updates = {
+            _id: car._id,
+            book: {
+              _id: car.book._id,
+              lastServiceMileage: parseInt(newMileage),
+            },
+          }
 
-          carCopy.book.lastServiceMileage = newMileage
-
-          updateCar(carCopy)
+          updateCar(updates)
         },
       },
     ])
@@ -158,12 +171,12 @@ const CarOverviewContainer = ({ navigation }) => {
     }
   }
 
-  const colorForOilKilometrage = (kilometrage) => {
-    if (kilometrage == null || car == null) {
+  const colorForOilKilometrage = (mileage) => {
+    if (mileage == null || car == null) {
       return 'black'
     }
 
-    const diff = car?.stateBook?.mileage - kilometrage
+    const diff = car?.book.mileage - mileage
 
     if (diff >= 15000) {
       return 'red'
@@ -219,15 +232,15 @@ const CarOverviewContainer = ({ navigation }) => {
           />
         )}
 
-        {car?.insurance && (
+        {insurance && (
           <SingleTile
             width={tileBorderWidth}
             height={tileBorderWidth}
             topTitle={'Insurance'}
-            topSubtitle={car?.insurance?.company}
+            topSubtitle={insurance.company}
             bottomSubtitle={'Valid until'}
-            bottomTitle={car?.insurance?.expires?.substring(0, 10)}
-            bottomTitleColor={colorForDate(car?.insurance?.expires)}
+            bottomTitle={dayjs(insurance.validUntil).format('DD.MM.YYYY')}
+            bottomTitleColor={colorForDate(insurance.validUntil)}
             onPress={() => navigation.navigate('InsuranceDetails')}
             onLongPress={onInsuranceTilePress}
           />
@@ -238,7 +251,7 @@ const CarOverviewContainer = ({ navigation }) => {
             width={tileBorderWidth}
             height={tileBorderWidth}
             topTitle={'Next Service checkup'}
-            bottomTitle={car?.book.nextServiceDate?.substring(0, 10)}
+            bottomTitle={dayjs(car.book.nextServiceDate).format('DD.MM.YYYY')}
             bottomTitleColor={colorForDate(car?.book.nextServiceDate)}
             onLongPress={onServiceTilePress}
           />
@@ -252,7 +265,7 @@ const CarOverviewContainer = ({ navigation }) => {
             bottomSubtitle={'At kilometrage'}
             bottomTitle={`${car?.book?.lastServiceMileage.toString()} km`}
             bottomTitleColor={colorForOilKilometrage(
-              car?.stateBook?.lastServiceMileage,
+              car?.book.lastServiceMileage,
             )}
             onLongPress={onOilTilePress}
           />
@@ -267,18 +280,11 @@ const CarOverviewContainer = ({ navigation }) => {
           bottomSubtitle={'This year'}
           bottomTitle={`${totalExpensesIn(expenses, true)} €`}
         />
-
-        <SingleTile
-          width={tileBorderWidth}
-          height={tileBorderWidth}
-          topTitle={'Driving license expiry date'}
-          bottomTitle={'2022-03-04'}
-        />
       </View>
       <OnboardingModal
         visible={onboardingModalVisible}
         setVisible={setOnboardingModalVisible}
-        onSuccess={fetchCars}
+        onSuccess={() => dispatch(fetchInsurances())}
       />
       <CarSelectModal
         visible={carSelectModalVisible}

@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react'
 import { ScrollView, Text, View } from 'react-native'
 import { useDispatch, useSelector } from 'react-redux'
 
-import SessionToken from '@/Store/User/SessionToken'
 import { carSelector } from '../../Store/Cars'
 import { useTheme } from '@/Theme'
 
@@ -109,12 +108,6 @@ const CarDetailsContainer = ({ navigation }) => {
           })
         }
       />
-
-      <Button
-        onPress={() => dispatch(SessionToken.action({ sessionToken: null }))}
-      >
-        Logout
-      </Button>
     </ScrollView>
   )
 }

@@ -1,14 +1,17 @@
+import { Button, TextInput } from 'react-native-paper'
+import { Linking, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { View, Dimensions, Text, Linking } from 'react-native'
+import { carSelector, insuranceSelector } from '../../Store/Cars'
+
+import dayjs from 'dayjs'
+import { useSelector } from 'react-redux'
 import { useTheme } from '@/Theme'
-import { TextInput, Button } from 'react-native-paper'
-import SessionToken from '@/Store/User/SessionToken'
 
 const InsuranceDetailsContainer = ({ navigation }) => {
   const { Layout, Gutters, Common } = useTheme()
 
-  const car = useSelector((state) => state.user.car)
+  const car = useSelector(carSelector)
+  const insurance = useSelector(insuranceSelector)
 
   const [editingMode, setEditingMode] = useState(false)
 
@@ -19,11 +22,13 @@ const InsuranceDetailsContainer = ({ navigation }) => {
   const [contactNumber, setContactNumber] = useState('')
 
   useEffect(() => {
-    setCompany(car?.insurance?.company)
-    setCoverage(car?.insurance?.scope)
-    setInsuranceNumber(car?.insurance?.number)
-    setContactNumber(car?.insurance?.contactNumber)
-    setValidUntil(car?.insurance?.expires?.substring(0, 10))
+    if (insurance) {
+      setCompany(insurance.company)
+      setCoverage(insurance.scope)
+      setInsuranceNumber(insurance.insuranceNumber)
+      setContactNumber(insurance.contactNumber.toString())
+      setValidUntil(dayjs(insurance.validUntil).format('DD.MM.YYYY'))
+    }
   }, [])
 
   React.useLayoutEffect(() => {
@@ -85,7 +90,7 @@ const InsuranceDetailsContainer = ({ navigation }) => {
         onChangeText={setContactNumber}
       />
       <Button
-        mode='contained'
+        mode="contained"
         onPress={() => Linking.openURL(`tel:${contactNumber}`)}
       >
         Call insurer

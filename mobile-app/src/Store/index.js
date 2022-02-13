@@ -16,11 +16,9 @@ import { combineReducers } from 'redux'
 import { configureStore } from '@reduxjs/toolkit'
 import startup from './Startup'
 import theme from './Theme'
-import user from './User'
 
 const reducers = combineReducers({
   startup,
-  user,
   theme,
   authSlice: authSliceReducer,
   cars,

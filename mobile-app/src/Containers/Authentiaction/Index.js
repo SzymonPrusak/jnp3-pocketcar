@@ -4,7 +4,6 @@ import { LoginUserService, RegisterUserService } from '@/Services/User'
 import React, { useState } from 'react'
 import { loginUser, registerUser } from '../../Store/Auth'
 
-import SessionToken from '@/Store/User/SessionToken'
 import { SingleTile } from '@/Components'
 import { useDispatch } from 'react-redux'
 import { useTheme } from '@/Theme'

@@ -11,10 +11,11 @@ export const loginUser = createAsyncThunk(
 
       console.log('success', result)
 
-      await AsyncStorage.setItem('sessionToken', result.token)
+      if (result.token) {
+        await AsyncStorage.setItem('sessionToken', result.token)
+      }
       return null
     } catch (e) {
-      console.log(e)
       return thunkApi.rejectWithValue(null)
     }
   },
@@ -26,7 +27,9 @@ export const registerUser = createAsyncThunk(
     try {
       const result = await RegisterUserService(login, email, password)
 
-      await AsyncStorage.setItem('sessionToken', result.token)
+      if (result.token) {
+        await AsyncStorage.setItem('sessionToken', result.token)
+      }
       return null
     } catch (e) {
       return thunkApi.rejectWithValue(null)
@@ -53,7 +56,7 @@ const authSlice = createSlice({
       state.isAuthenticated = true
     })
     builder.addCase(loginUser.rejected, (state) => {
-      state.isAuthenticated = true
+      state.isAuthenticated = false
     })
     builder.addCase(registerUser.fulfilled, (state) => {
       state.isAuthenticated = true

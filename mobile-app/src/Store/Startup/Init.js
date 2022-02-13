@@ -6,7 +6,6 @@ import {
 
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import DefaultTheme from '@/Store/Theme/DefaultTheme'
-import FetchOne from '@/Store/User/FetchOne'
 import { navigateAndSimpleReset } from '@/Navigators/Root'
 import { setIsAuthenticated } from '../Auth'
 

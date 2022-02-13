@@ -8,11 +8,12 @@ import {
   Text,
   View,
 } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import DatePicker from 'react-native-date-picker'
-import { NewCarService } from '@/Services/Cars'
+import { NewInsuranceService } from '../Services/Insurances'
 import { createNewCar } from '../Store/Cars'
+import { unwrapResult } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
 import { useTheme } from '@/Theme'
 
@@ -22,7 +23,7 @@ const TextField = (props) => (
 
 const OnboardingModal = ({ visible, setVisible, onSuccess }) => {
   const dispatch = useDispatch()
-  const { Layout, Gutters, Fonts, Colors } = useTheme()
+  const { Layout, Gutters, Fonts } = useTheme()
 
   const [name, setName] = useState('')
   const [licensePlate, setLicensePlate] = useState('')
@@ -34,13 +35,38 @@ const OnboardingModal = ({ visible, setVisible, onSuccess }) => {
   const [generation, setGeneration] = useState('')
 
   const [insuranceProvider, setInsuranceProvider] = useState('')
-  const [insuranceDeadline, setInsuranceDeadline] = useState(new Date())
   const [insuranceNumber, setInsuranceNumber] = useState('')
   const [insurancePhoneNumber, setInsurancePhoneNumber] = useState('')
+  const [insuranceScope, setInsuranceScope] = useState('')
+  const [insuranceCost, setInsuranceCost] = useState('')
+  const [insuranceValidFrom, setInsuranceValidFrom] = useState(new Date())
+  const [insuranceValidUntil, setInsuranceValidUntil] = useState(new Date())
 
   const [mileage, setMileage] = useState('')
   const [lastServiceMileage, setLastServiceMileage] = useState('')
   const [nextServiceDate, setNextServiceDate] = useState(new Date())
+
+  useEffect(() => {
+    if (visible) {
+      setName('')
+      setLicensePlate('')
+      setManufacturer('')
+      setModel('')
+      setVinNumber('')
+      setProductionYear('')
+      setEngine('')
+      setGeneration('')
+      setInsuranceProvider('')
+      setInsuranceNumber('')
+      setInsurancePhoneNumber('')
+      setInsuranceValidFrom(new Date())
+      setInsuranceValidUntil(new Date())
+      setInsuranceScope('')
+      setMileage('')
+      setLastServiceMileage('')
+      setNextServiceDate(new Date())
+    }
+  }, [visible])
 
   const addNewCar = async () => {
     let newCar = {
@@ -59,7 +85,27 @@ const OnboardingModal = ({ visible, setVisible, onSuccess }) => {
       },
     }
 
-    await dispatch(createNewCar(newCar))
+    const result = await dispatch(createNewCar(newCar))
+
+    const carUnwrapped = unwrapResult(result)
+
+    console.log('car unwrapped', carUnwrapped)
+
+    if (carUnwrapped) {
+      console.log('herehere')
+      let insurance = {
+        insuranceNumber,
+        cost: parseInt(insuranceCost, 10),
+        company: insuranceProvider,
+        scope: insuranceScope,
+        contactNumber: parseInt(insurancePhoneNumber, 10),
+        validFrom: insuranceValidFrom,
+        validUntil: insuranceValidUntil,
+        carId: carUnwrapped._id,
+      }
+      await NewInsuranceService(carUnwrapped._id, insurance)
+    }
+
     setVisible(false)
     onSuccess()
   }
@@ -191,6 +237,18 @@ const OnboardingModal = ({ visible, setVisible, onSuccess }) => {
                   onChangeText={setInsurancePhoneNumber}
                 />
 
+                <TextField
+                  label="Insurance cost"
+                  value={insuranceCost}
+                  onChangeText={setInsuranceCost}
+                />
+
+                <TextField
+                  label="Insurance scope"
+                  value={insuranceScope}
+                  onChangeText={setInsuranceScope}
+                />
+
                 <View style={styles.datepickerContainer}>
                   <Text
                     style={[
@@ -199,11 +257,26 @@ const OnboardingModal = ({ visible, setVisible, onSuccess }) => {
                       { marginLeft: 12 },
                     ]}
                   >
-                    Insurance expiry date:
+                    Insurance valid from:
                   </Text>
                   <DatePicker
-                    date={insuranceDeadline}
-                    onDateChange={setInsuranceDeadline}
+                    date={insuranceValidFrom}
+                    onDateChange={setInsuranceValidFrom}
+                    style={{ alignSelf: 'center' }}
+                    mode="date"
+                  />
+                  <Text
+                    style={[
+                      Fonts.textSmall,
+                      Gutters.smallTMargin,
+                      { marginLeft: 12 },
+                    ]}
+                  >
+                    Insurance valid until:
+                  </Text>
+                  <DatePicker
+                    date={insuranceValidUntil}
+                    onDateChange={setInsuranceValidUntil}
                     style={{ alignSelf: 'center' }}
                     mode="date"
                   />
