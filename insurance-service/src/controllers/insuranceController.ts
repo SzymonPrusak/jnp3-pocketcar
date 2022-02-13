@@ -3,12 +3,30 @@ import {
   validateAddInsurance,
   validateUpdateInsurance,
 } from '../utils/insuranceSchema';
+import axios from 'axios';
 
 import { InsuranceModel } from '../model/insuranceModel';
+
+async function getAcces(carId: string, isIntegration: boolean) {
+  try {
+    const response = await axios.get('access/' + carId + '?userOnly=true')
+    if(isIntegration) {
+      return response.data.role !== 'viewer' && response.status === 200;
+    }
+    return response.status === 200;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+}
 
 export class InsuranceController {
   public static getInsurance(req: Request, res: Response) {
     const { carId } = req.params;
+
+    if(!getAcces(carId, false)) {
+      return res.status(403).send({ message: "You don't have permission" });
+    }
 
     InsuranceModel.findOne({ carId }, (err, insurance) => {
       if (err) {
@@ -21,6 +39,11 @@ export class InsuranceController {
   public static addInsurance(req: Request, res: Response) {
     const { error, value } = validateAddInsurance(req.body);
     const { carId } = req.params;
+    if(!getAcces(carId, true)) {
+      res.status(403).send({ message: "You don't have permission" });
+      return;
+    }
+
     if (error) {
       res.status(400).send({ message: error });
       return;
@@ -45,7 +68,12 @@ export class InsuranceController {
   }
 
   public static updateInsurance(req: Request, res: Response) {
+    const { carId } = req.params;
     const { error, value } = validateUpdateInsurance(req.body);
+    if(!getAcces(carId, true)) {
+      res.status(403).send({ message: "You don't have permission" });
+      return;
+    }
     if (error) {
       res.status(400).send({ message: error });
       return;
@@ -57,6 +85,11 @@ export class InsuranceController {
 
   public static deleteInsurance(req: Request, res: Response) {
     const { carId } = req.params;
+    
+    if(!getAcces(carId, true)) {
+      res.status(403).send({ message: "You don't have permission" });
+      return;
+    }
 
     InsuranceModel.findOneAndDelete({ carId }, function (err) {
       if (err) {
