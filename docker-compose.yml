@@ -48,7 +48,6 @@ services:
       DATABASE_PASSWORD: password
       EVENT_REDIS_HOST: event_redis
       NOTIFICATION_SERVICE_HOST: notification:3003
-      HTTP_PORT: 3000
   auth_balancer:
     image: nginx
     restart: always
