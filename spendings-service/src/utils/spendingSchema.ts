@@ -5,6 +5,7 @@ const newCarSchema = Joi.object({
   cost: Joi.number().required(),
   carId: Joi.string().required(),
   date: Joi.date().required(),
+  type: Joi.string().required(),
 });
 
 export const validateAddSpending = (spending) => {
@@ -17,6 +18,7 @@ const updateCarSchema = Joi.object({
   cost: Joi.number().optional(),
   carId: Joi.string().optional(),
   date: Joi.date().optional(),
+  type: Joi.string().optional(),
 });
 
 export const validateUpdateSpending = (spending) => {
