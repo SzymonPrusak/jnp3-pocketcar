@@ -1,19 +1,13 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import { router } from './apiRoutes';
-
-const mongooseLogin = 'root';
-const mongoosePassword = 'password';
-const mongooseUrl = '192.168.80.128:27017';
+import { hosts } from './const/hosts';
 
 const app = express();
-
 app.use(express.json());
-
 app.use(express.urlencoded({ extended: true }));
 
-mongoose.connect(`mongodb://${mongooseLogin}:${mongoosePassword}@${mongooseUrl}`);
-
+mongoose.connect(`mongodb://${hosts.dbUsername}:${hosts.dbPassword}@${hosts.dbHost}`);
 const db = mongoose.connection;
 
 if (!db) {
@@ -28,4 +22,4 @@ app.get('/', (_, res) => {
   res.send('Server is up!');
 });
 
-app.listen(3005);
+app.listen(hosts.httpPort);
