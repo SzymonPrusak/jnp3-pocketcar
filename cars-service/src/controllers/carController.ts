@@ -1,8 +1,14 @@
+import {
+  CarAccessModel,
+  CarBookModel,
+  CarModel,
+  dropCacheAccesses,
+  getAccesses,
+} from '../model/carModel';
 import { Request, Response } from 'express';
-import { CarModel, CarAccessModel, CarBookModel, getAccesses, dropCacheAccesses } from '../model/carModel';
-import { validateNewCar, validateCarUpdate } from '../utils/carSchema';
-import { eventRedisClient } from '../utils/redisCon';
+import { validateCarUpdate, validateNewCar } from '../utils/carSchema';
 
+import { eventRedisClient } from '../utils/redisCon';
 
 export class CarController {
   public static listCars(req: Request, res: Response) {
@@ -18,14 +24,14 @@ export class CarController {
         model: 'Car',
         populate: {
           path: 'book',
-          model: 'CarBook'
-        }
+          model: 'CarBook',
+        },
       })
       .exec((err, accesses) => {
         if (err) {
-          return res.status(500).send({ message: err });
+          return res.status(500).json({ message: err });
         }
-        const cars = accesses.map(a => a.car);
+        const cars = accesses.map((a) => a.car);
         return res.status(200).json(cars);
       });
   }
@@ -39,7 +45,7 @@ export class CarController {
 
     const { error, value } = validateNewCar(req.body);
     if (error) {
-      res.status(400).send({ message: error });
+      res.status(400).json({ message: error });
       return;
     }
     const bookJson = value.book;
@@ -47,24 +53,24 @@ export class CarController {
     const carBook = new CarBookModel(bookJson);
     const car = new CarModel({
       ...value,
-      book: carBook
+      book: carBook,
     });
 
     car.save((err, car) => {
       if (err) {
-        res.status(500).send({ message: err });
+        res.status(500).json({ message: err });
         return;
       }
       if (!car) {
-        res.status(500).send({ message: 'Could not create car' });
+        res.status(500).json({ message: 'Could not create car' });
         return;
       }
 
       const carAccess = new CarAccessModel({
         car: car._id,
         userId: token.id,
-        role: 'owner'
-      })
+        role: 'owner',
+      });
 
       car.save();
       carBook.save();
@@ -74,7 +80,7 @@ export class CarController {
 
       const eventArgs = {
         userId: token.id,
-        car: car
+        car: car,
       };
       eventRedisClient.publish('car_added', JSON.stringify(eventArgs));
     });
@@ -89,14 +95,15 @@ export class CarController {
 
     const { error, value } = validateCarUpdate(req.body);
     if (error) {
-      res.status(400).send({ message: error });
+      res.status(400).json({ message: error });
       return;
     }
     const bookJson = value.book;
 
-    const access = (await getAccesses(value._id))
-      .find(a => a.userId = token.id);
-    
+    const access = (await getAccesses(value._id)).find(
+      (a) => (a.userId = token.id),
+    );
+
     if (!access || access.role == 'viewer') {
       res.sendStatus(403);
       return;
@@ -118,29 +125,28 @@ export class CarController {
 
     const { carId } = req.params;
 
-    CarModel.findById(carId)
-      .exec(async (err, car) => {
-        if (err) {
-          return res.status(500).send({ message: err });
-        }
-        if (!car) {
-          return res.sendStatus(404);
-        }
+    CarModel.findById(carId).exec(async (err, car) => {
+      if (err) {
+        return res.status(500).json({ message: err });
+      }
+      if (!car) {
+        return res.sendStatus(404);
+      }
 
-        const access = (await getAccesses(car._id))
-          .find(a => a.userId == token.id);
+      const access = (await getAccesses(car._id)).find(
+        (a) => a.userId == token.id,
+      );
 
-        if (!access || access.role != 'owner') {
-          return res.sendStatus(403);
-        }
+      if (!access || access.role != 'owner') {
+        return res.sendStatus(403);
+      }
 
-        dropCacheAccesses(car._id)
-          .then(() => {
-            CarAccessModel.deleteMany({ car: car._id }).exec();
-            CarBookModel.deleteOne({ _id: car.book }).exec();
-            car.delete();
-          })
-        return res.sendStatus(200);
+      dropCacheAccesses(car._id).then(() => {
+        CarAccessModel.deleteMany({ car: car._id }).exec();
+        CarBookModel.deleteOne({ _id: car.book }).exec();
+        car.delete();
       });
+      return res.sendStatus(200);
+    });
   }
 }
