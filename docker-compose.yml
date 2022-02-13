@@ -1,16 +1,45 @@
 version: "3.9"
 
+networks:
+  auth-network:
+    driver: auth-driver-1
+
 volumes:
-  auth_database_container:
+  auth_database_vol:
+  cars_database_vol:
+  insurance_database_vol:
+  notification_database_vol:
+  spendings_database_vol:
 
 services:
-  auth_database:
+  event_redis:
+    image: redis
+    restart: always
+    ports:
+      - 7001:6379
+  cars_database:
     image: mongo
     restart: always
     ports:
-      - 27017:27017
+      - 8001:27017
     volumes:
-      - auth_database_container:/data/db
+      - cars_database_vol:/data/db
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
+  cars_redis:
+    image: redis
+    restart: always
+    ports:
+      - 7000:6379
+  cars:
+    build: ./cars-service
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: development
+      DATABASE_HOST: cars_database
+      DATABASE_USERNAME: root
+      DATABASE_PASSWORD: password
+      CACHE_REDIS_HOST: cars_redis
+      EVENT_REDIS_HOST: event_redis
