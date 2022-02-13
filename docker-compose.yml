@@ -84,3 +84,21 @@ services:
       DATABASE_USERNAME: root
       DATABASE_PASSWORD: password
       EVENT_REDIS_HOST: event_redis
+  insurance:
+    build: ./insurance-service
+    ports:
+      - "3004:3004"
+    environment:
+      NODE_ENV: development
+      DATABASE_HOST: insurance_database
+      DATABASE_USERNAME: root
+      DATABASE_PASSWORD: password
+  spednings:
+    build: ./spenndings-service
+    ports:
+      - "3005:3005"
+    environment:
+      NODE_ENV: development
+      DATABASE_HOST: spednings_database
+      DATABASE_USERNAME: root
+      DATABASE_PASSWORD: password
