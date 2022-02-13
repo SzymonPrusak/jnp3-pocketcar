@@ -1,8 +1,13 @@
 version: "3.9"
 
 networks:
-  auth-network:
-    driver: auth-driver-1
+  system_network:
+  event_network:
+  auth_network:
+  cars_network:
+  insurance_network:
+  notification_network:
+  spendings_network:
 
 volumes:
   auth_database_vol:
@@ -15,16 +20,16 @@ services:
   event_redis:
     image: redis
     restart: always
-    ports:
-      - 7001:6379
+    networks:
+      - event_network
 
   auth_database:
     image: mongo
     restart: always
-    ports:
-      - 8000:27017
     volumes:
       - auth_database_vol:/data/db
+    networks:
+      - auth_network
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
@@ -32,6 +37,10 @@ services:
     build: ./auth-service
     ports:
       - "3000:3000"
+    networks:
+      - system_network
+      - event_network
+      - auth_network
     environment:
       NODE_ENV: development
       DATABASE_HOST: auth_database
@@ -39,26 +48,31 @@ services:
       DATABASE_PASSWORD: password
       EVENT_REDIS_HOST: event_redis
       NOTIFICATION_SERVICE_HOST: notification:3003
+      HTTP_PORT: 3000
 
   cars_database:
     image: mongo
     restart: always
-    ports:
-      - 8001:27017
     volumes:
       - cars_database_vol:/data/db
+    networks:
+      - cars_network
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
   cars_redis:
     image: redis
     restart: always
-    ports:
-      - 7000:6379
+    networks:
+      - cars_network
   cars:
     build: ./cars-service
     ports:
       - "3001:3001"
+    networks:
+      - system_network
+      - event_network
+      - cars_network
     environment:
       NODE_ENV: development
       DATABASE_HOST: cars_database
@@ -66,14 +80,15 @@ services:
       DATABASE_PASSWORD: password
       CACHE_REDIS_HOST: cars_redis
       EVENT_REDIS_HOST: event_redis
+      HTTP_PORT: 3001
 
   notification_database:
     image: mongo
     restart: always
-    ports:
-      - 8002:27017
     volumes:
       - notification_database_vol:/data/db
+    networks:
+      - notification_network
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
@@ -81,20 +96,25 @@ services:
     build: ./notification-service
     ports:
       - "3003:3003"
+    networks:
+      - system_network
+      - event_network
+      - notification_network
     environment:
       NODE_ENV: development
       DATABASE_HOST: notification_database
       DATABASE_USERNAME: root
       DATABASE_PASSWORD: password
       EVENT_REDIS_HOST: event_redis
+      HTTP_PORT: 3003
 
   insurance_database:
     image: mongo
     restart: always
-    ports:
-      - 8003:27017
     volumes:
       - insurance_database_vol:/data/db
+    networks:
+      - insurance_network
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
@@ -102,19 +122,23 @@ services:
     build: ./insurance-service
     ports:
       - "3004:3004"
+    networks:
+      - system_network
+      - insurance_network
     environment:
       NODE_ENV: development
       DATABASE_HOST: insurance_database
       DATABASE_USERNAME: root
       DATABASE_PASSWORD: password
+      HTTP_PORT: 3004
 
   spendings_database:
     image: mongo
     restart: always
-    ports:
-      - 8004:27017
     volumes:
       - spendings_database_vol:/data/db
+    networks:
+      - spendings_network
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
@@ -122,8 +146,12 @@ services:
     build: ./spendings-service
     ports:
       - "3005:3005"
+    networks:
+      - system_network
+      - spendings_network
     environment:
       NODE_ENV: development
-      DATABASE_HOST: spednings_database
+      DATABASE_HOST: spendings_database
       DATABASE_USERNAME: root
       DATABASE_PASSWORD: password
+      HTTP_PORT: 3005

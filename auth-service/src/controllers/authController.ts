@@ -14,7 +14,7 @@ export class AuthController {
 
     User.findOne({ username }).exec((err, user) => {
       if (err) {
-        res.status(500).send({ message: err });
+        return res.status(500).send({ message: err });
       }
 
       if (!user) {
