@@ -1,19 +1,19 @@
 import { createClient } from 'redis';
-import { cacheRedisHost, eventRedisHost } from '../const/hosts';
+import { hosts } from '../const/hosts';
 
 export const cacheRedisClient = createClient({
-    url: `redis://@${cacheRedisHost}`
-  });
+  url: `redis://@${hosts.cacheRedisHost}`
+});
 
 cacheRedisClient.connect();
 
-console.log(`Cache Redis on ${cacheRedisHost}`);
+console.log(`Cache Redis on ${hosts.cacheRedisHost}`);
 
 
 export const eventRedisClient = createClient({
-    url: `redis://@${eventRedisHost}`
-  });
+  url: `redis://@${hosts.eventRedisHost}`
+});
 
-  eventRedisClient.connect();
+eventRedisClient.connect();
 
-console.log(`Event Redis on ${eventRedisHost}`);
+console.log(`Event Redis on ${hosts.eventRedisHost}`);

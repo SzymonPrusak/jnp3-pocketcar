@@ -2,13 +2,13 @@ import express from 'express';
 import mongoose from 'mongoose';
 import { carRouter } from './routes/carRoutes';
 import { accessRouter } from './routes/accessRoutes';
-import { databaseHost, databaseUsername, databasePassword } from './const/database';
+import { hosts } from './const/hosts';
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-mongoose.connect(`mongodb://${databaseUsername}:${databasePassword}@${databaseHost}`);
+mongoose.connect(`mongodb://${hosts.dbUsername}:${hosts.dbPassword}@${hosts.dbHost}`);
 const db = mongoose.connection;
 
 if (!db) {
@@ -24,4 +24,4 @@ app.get('/', (_, res) => {
   res.send('Server is up!');
 });
 
-app.listen(3001);
+app.listen(hosts.httpPort);
