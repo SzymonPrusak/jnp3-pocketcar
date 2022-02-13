@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import { settingsRouter } from './routes/settingsRoutes';
 import { eventRedisClient } from './utils/redisCon';
 import { hosts } from './const/hosts';
+import { sendMail } from './mailSender/mailSender';
+import { NotificationChannelModel } from './models/settingsModel';
 
 const app = express();
 app.use(express.json());
@@ -27,15 +29,22 @@ app.listen(hosts.httpPort);
 
 eventRedisClient.subscribe('registration', (msg, ch) => {
   console.log(ch + " " + msg);
-  // user zarejestrowany
-  // w msg._id id usera
-  // maila pobierasz przez NotificationChannelModel (filtruj po userId ,name: 'email' i isEnabled: true -> adres email masz w data)
+  NotificationChannelModel.findOne({userId: msg._id}, undefined, undefined, (err, result) => {
+    if(err || !result) {
+      console.log(err)
+      return;
+    }
+    sendMail(result.data, "Welcome", "Welcome " + result.data + " :)")
+  })
 });
 
 eventRedisClient.subscribe('car_added', (msg, ch) => {
   console.log(ch + " " + msg);
-  // dodano samochód
-  // w msg.userId jest id usera który dodał auto
-  // maila pobierasz przez NotificationChannelModel (filtruj po userId ,name: 'email' i isEnabled: true -> adres email masz w data)
-  // info o aucie w msg.car
+  NotificationChannelModel.findOne({userId: msg._id, name: 'email', isEnabled: true}, undefined, undefined, (err, result) => {
+    if(err || !result) {
+      console.log(err)
+      return;
+    }
+    sendMail(result.data, "Car added", "Congrats, you added a car!")
+  })
 });
