@@ -1,14 +1,14 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import { databaseHost, databasePassword, databaseUsername } from './const/database';
 import { settingsRouter } from './routes/settingsRoutes';
 import { eventRedisClient } from './utils/redisCon';
+import { hosts } from './const/hosts';
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-mongoose.connect(`mongodb://${databaseUsername}:${databasePassword}@${databaseHost}`);
+mongoose.connect(`mongodb://${hosts.dbUsername}:${hosts.dbPassword}@${hosts.dbHost}`);
 const db = mongoose.connection;
 
 if (!db) {
@@ -23,7 +23,7 @@ app.get('/', (_, res) => {
   res.send('Server is up!');
 });
 
-app.listen(3003);
+app.listen(hosts.httpPort);
 
 eventRedisClient.subscribe('registration', (msg, ch) => {
   console.log(ch + " " + msg);

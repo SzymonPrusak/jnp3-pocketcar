@@ -1,10 +1,10 @@
 import { createClient } from 'redis';
-import { eventRedisHost } from '../const/hosts';
+import { hosts } from '../const/hosts';
 
 export const eventRedisClient = createClient({
-  url: `redis://@${eventRedisHost}`
+  url: `redis://@${hosts.eventRedisHost}`
 });
 
 eventRedisClient.connect();
 
-console.log(`Event Redis on ${eventRedisHost}`);
+console.log(`Event Redis on ${hosts.eventRedisHost}`);
