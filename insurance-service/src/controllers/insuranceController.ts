@@ -1,8 +1,12 @@
 import { Request, Response } from 'express';
-import { InsuranceModel } from '../model/insuranceModel';
-import { validateAddInsurance, validateUpdateInsurance } from '../utils/insuranceSchema';
+import {
+  validateAddInsurance,
+  validateUpdateInsurance,
+} from '../utils/insuranceSchema';
 
-export class InsurenceController {
+import { InsuranceModel } from '../model/insuranceModel';
+
+export class InsuranceController {
   public static getInsurance(req: Request, res: Response) {
     const { carId } = req.params;
 
@@ -24,9 +28,9 @@ export class InsurenceController {
 
     const insurance = new InsuranceModel({
       ...value,
-      carId
+      carId,
     });
-    
+
     insurance.save((err, car) => {
       if (err) {
         res.status(500).send({ message: err });
@@ -37,10 +41,10 @@ export class InsurenceController {
         return;
       }
       res.status(200).json(car);
-    })
+    });
   }
 
-  public static updateInsurence(req: Request, res: Response) {
+  public static updateInsurance(req: Request, res: Response) {
     const { error, value } = validateUpdateInsurance(req.body);
     if (error) {
       res.status(400).send({ message: error });
@@ -51,15 +55,14 @@ export class InsurenceController {
     res.sendStatus(200);
   }
 
-  public static deleteInsurence(req: Request, res: Response) {
+  public static deleteInsurance(req: Request, res: Response) {
     const { carId } = req.params;
-    
-    InsuranceModel.findOneAndDelete({carId}, function (err) {
+
+    InsuranceModel.findOneAndDelete({ carId }, function (err) {
       if (err) {
-          res.status(404).send({ message: 'Could not find insurance' });
-          return;
-      }
-      else {
+        res.status(404).send({ message: 'Could not find insurance' });
+        return;
+      } else {
         res.sendStatus(200);
       }
     });
