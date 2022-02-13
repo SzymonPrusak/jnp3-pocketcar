@@ -3,13 +3,13 @@ import express from 'express';
 import mongoose from 'mongoose';
 import { router } from './apiRoutes';
 import { validateToken } from './utils/authentication';
-import { databaseHost, databasePassword, databaseUsername } from './const/database';
+import { hosts } from './const/hosts';
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-mongoose.connect(`mongodb://${databaseUsername}:${databasePassword}@${databaseHost}`);
+mongoose.connect(`mongodb://${hosts.dbUsername}:${hosts.dbPassword}@${hosts.dbHost}`);
 const db = mongoose.connection;
 
 if (!db) {
@@ -32,4 +32,4 @@ app.get('/useApi', auth, (req, res) => {
   res.send('Hello ' + req.userToken.login + ' ' + req.userToken.id);
 });
 
-app.listen(3000);
+app.listen(hosts.httpPort);

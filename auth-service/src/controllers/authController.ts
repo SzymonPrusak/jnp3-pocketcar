@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 
 import { generateToken, validateToken } from '../utils/authentication';
 import { User } from '../model/userModel';
-import { notificationServiceHost } from '../const/hosts';
+import { hosts } from '../const/hosts';
 import { eventRedisClient } from '../utils/redisCon';
 
 
@@ -72,7 +72,7 @@ export class AuthController {
         isEnabled: true
       }];
       
-      fetch(`http://${notificationServiceHost}/notificationSettings`, {
+      fetch(`http://${hosts.notificationServiceHost}/notificationSettings`, {
         method: 'post',
         body: JSON.stringify(settings),
         headers: {
