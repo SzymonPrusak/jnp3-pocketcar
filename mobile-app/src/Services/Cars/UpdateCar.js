@@ -1,16 +1,12 @@
 import api, { handleError } from '@/Services'
 
-import { Config } from '@/Config'
-
-export default async (sessionToken, car) => {
+export default async (car) => {
+  console.log('args', car)
   if (car == null) {
-    handleError({ message: 'No car specified' })
+    return handleError({ message: 'No car specified' })
   }
 
-  const response = await api.put(`${Config.CARS_API_URL}/car`, car, {
-    headers: { 'x-auth-token': sessionToken },
-  })
+  const response = await api.put('/car', car)
 
-  console.log(response)
   return response.data
 }

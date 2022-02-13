@@ -1,32 +1,36 @@
+import { Button, TextInput } from 'react-native-paper'
 import React, { useEffect, useState } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
-import { View, ScrollView, Text } from 'react-native'
-import { useTheme } from '@/Theme'
-import { TextInput, Button } from 'react-native-paper'
+import { ScrollView, Text, View } from 'react-native'
+import { useDispatch, useSelector } from 'react-redux'
+
 import SessionToken from '@/Store/User/SessionToken'
+import { carSelector } from '../../Store/Cars'
+import { useTheme } from '@/Theme'
 
 const CarDetailsContainer = ({ navigation }) => {
   const { Layout, Gutters, Common } = useTheme()
+  const dispatch = useDispatch()
 
   const [editingMode, setEditingMode] = useState(false)
 
-  const car = useSelector(state => state.user.car)
+  const car = useSelector(carSelector)
 
-  const [license, setLicense] = useState('')
-  const [brand, setBrand] = useState('')
-  const [model, setModel] = useState('')
-  const [kilometrage, setKilometrage] = useState('')
-  const [yearOfProduction, setYearOfProduction] = useState('2009')
-  const [engine, setEngine] = useState('1.4 v')
+  const [localCar, setLocalCar] = useState(car)
 
   useEffect(() => {
-    setLicense(car?.name || '')
-    setBrand(car?.generation?.model?.make?.name)
-    setModel(car?.generation?.model?.name)
-    setKilometrage(`${car?.stateBook?.mileage} km`)
+    if (car) {
+      setLocalCar({
+        ...car,
+        productionYear: car.productionYear.toString(),
+        book: {
+          ...car.book,
+          mileage: car.book.mileage.toString(),
+        },
+      })
+    } else {
+      setLocalCar(null)
+    }
   }, [car])
-
-  const dispatch = useDispatch()
 
   React.useLayoutEffect(() => {
     navigation.setOptions({
@@ -54,45 +58,57 @@ const CarDetailsContainer = ({ navigation }) => {
       <TextInput
         style={Common.textInput}
         disabled={!editingMode}
+        label={'Name'}
+        value={localCar?.name}
+        onChangeText={(text) => setLocalCar({ ...localCar, name: text })}
+      />
+      <TextInput
+        style={Common.textInput}
+        disabled={!editingMode}
         label={'License plate'}
-        value={license}
-        onChangeText={setLicense}
+        value={localCar?.book.licensePlate}
+        onChangeText={(text) =>
+          setLocalCar({
+            ...localCar,
+            book: { ...localCar.book, licensePlate: text },
+          })
+        }
       />
       <TextInput
         style={Common.textInput}
         disabled={!editingMode}
         label={'Brand'}
-        value={brand}
-        onChangeText={setBrand}
+        value={localCar?.makeName}
+        onChangeText={(text) => setLocalCar({ ...localCar, makeName: text })}
       />
       <TextInput
         style={Common.textInput}
         disabled={!editingMode}
         label={'Model'}
-        value={model}
-        onChangeText={setModel}
-      />
-      <TextInput
-        style={Common.textInput}
-        disabled={!editingMode}
-        label={'Kilometrage'}
-        value={kilometrage}
-        onChangeText={setKilometrage}
-      />
-      {/* <TextInput
-        style={Common.textInput}
-        disabled={!editingMode}
-        label={'Year of production'}
-        value={yearOfProduction}
-        onChangeText={setYearOfProduction}
+        value={localCar?.carModelName}
+        onChangeText={(text) =>
+          setLocalCar({ ...localCar, carModelName: text })
+        }
       />
       <TextInput
         style={Common.textInput}
         disabled={!editingMode}
         label={'Engine'}
-        value={engine}
-        onChangeText={setEngine}
-      /> */}
+        value={localCar?.engine}
+        onChangeText={(text) => setLocalCar({ ...localCar, engine: text })}
+      />
+      <TextInput
+        style={Common.textInput}
+        disabled={!editingMode}
+        label={'Kilometrage'}
+        value={localCar?.book.mileage.toString()}
+        onChangeText={(text) =>
+          setLocalCar({
+            ...localCar,
+            book: { ...localCar.book, mileage: text },
+          })
+        }
+      />
 
       <Button
         onPress={() => dispatch(SessionToken.action({ sessionToken: null }))}

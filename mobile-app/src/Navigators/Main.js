@@ -52,9 +52,11 @@ const Authentication = createStackNavigator()
 
 // @refresh reset
 const MainNavigator = () => {
-  const sessionToken = useSelector((state) => state.user.sessionToken)
+  const isAuthenticated = useSelector(
+    (state) => state.authSlice.isAuthenticated,
+  )
 
-  return sessionToken == null ? (
+  return !isAuthenticated ? (
     <Authentication.Navigator>
       <Authentication.Screen
         name="Authentication"

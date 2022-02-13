@@ -1,57 +1,47 @@
-import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, ScrollView } from 'react-native'
-import { useTheme } from '@/Theme'
-import { FAB, Chip } from 'react-native-paper'
+import { Chip, FAB } from 'react-native-paper'
 import { ExpenseRow, NewExpenseModal } from '@/Components'
-import { FlatList } from 'react-native-gesture-handler'
 import { GetExpensesService, NewExpenseService } from '@/Services/Expenses'
-import { useSelector, useDispatch } from 'react-redux'
+import React, { useEffect, useState } from 'react'
+import { ScrollView, StyleSheet, View } from 'react-native'
+import { carSelector, expensesSelector, fetchExpenses } from '../../Store/Cars'
+import { useDispatch, useSelector } from 'react-redux'
+
 import Expenses from '@/Store/User/Expenses'
+import { FlatList } from 'react-native-gesture-handler'
+import { useTheme } from '@/Theme'
 
 const ExpensesContainer = () => {
   const { Gutters, Layout } = useTheme()
 
-  const sessionToken = useSelector((state) => state.user.sessionToken)
-
   const [modalVisible, setModalVisible] = useState(false)
 
   const dispatch = useDispatch()
-  const expenses = useSelector((state) => state.user.expenses)
-  const car = useSelector((state) => state.user.car)
+  const expenses = useSelector(expensesSelector)
+  const carId = useSelector((state) => state.cars.currentCarId)
 
   const [type, setType] = useState('all')
 
   useEffect(() => {
-    fetchExpenses()
-  }, [sessionToken, car])
-
-  const fetchExpenses = () => {
-    if (sessionToken == null || car == null) {
-      return
-    }
-
-    GetExpensesService(sessionToken, car.id).then((expenses) => {
-      dispatch(Expenses.action({ expenses }))
-    })
-  }
+    dispatch(fetchExpenses())
+  }, [dispatch])
 
   const renderItem = ({ item }) => (
     <ExpenseRow
       date={item.timestamp}
-      title={item.items[0].name}
-      value={item.items[0].price}
-      type={item.name}
+      title={item.name}
+      value={item.cost}
+      // type={item.name}
     />
   )
 
   const onExpenseAdd = (expense) => {
-    if (sessionToken == null || car == null || expense == null) {
+    if (carId == null || expense == null) {
       return
     }
 
-    NewExpenseService(sessionToken, car.id, expense)
+    NewExpenseService(carId, expense)
       .then(() => {
-        fetchExpenses()
+        dispatch(fetchExpenses())
         console.log('Added new expense')
       })
       .catch(() => {

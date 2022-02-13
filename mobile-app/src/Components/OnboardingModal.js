@@ -12,88 +12,56 @@ import React, { useState } from 'react'
 
 import DatePicker from 'react-native-date-picker'
 import { NewCarService } from '@/Services/Cars'
-import TextInputMask from 'react-native-text-input-mask'
+import { createNewCar } from '../Store/Cars'
+import { useDispatch } from 'react-redux'
 import { useTheme } from '@/Theme'
 
 const TextField = (props) => (
   <TextInput mode={'outlined'} style={{ marginBottom: 5 }} {...props} />
 )
 
-const OnboardingModal = ({ sessionToken, visible, setVisible, onSuccess }) => {
+const OnboardingModal = ({ visible, setVisible, onSuccess }) => {
+  const dispatch = useDispatch()
   const { Layout, Gutters, Fonts, Colors } = useTheme()
 
+  const [name, setName] = useState('')
   const [licensePlate, setLicensePlate] = useState('')
   const [manufacturer, setManufacturer] = useState('')
   const [model, setModel] = useState('')
+  const [vinNumber, setVinNumber] = useState('')
+  const [productionYear, setProductionYear] = useState('')
+  const [engine, setEngine] = useState('')
+  const [generation, setGeneration] = useState('')
 
   const [insuranceProvider, setInsuranceProvider] = useState('')
   const [insuranceDeadline, setInsuranceDeadline] = useState(new Date())
   const [insuranceNumber, setInsuranceNumber] = useState('')
   const [insurancePhoneNumber, setInsurancePhoneNumber] = useState('')
 
-  const [kilometrage, setKilometrage] = useState('')
-  const [kilometrageAtLastOilChange, setKilometrageAtLastOilChange] =
-    useState('')
-  const [nextServiceCheckupDate, setNextServiceCheckupDate] = useState(
-    new Date(),
-  )
+  const [mileage, setMileage] = useState('')
+  const [lastServiceMileage, setLastServiceMileage] = useState('')
+  const [nextServiceDate, setNextServiceDate] = useState(new Date())
 
-  const addNewCar = () => {
+  const addNewCar = async () => {
     let newCar = {
-      name: licensePlate,
-      productionYear,
-    }
-
-    let carObject = {
-      name: licensePlate,
-      prodYear: 2010,
-      engine: {
-        name: 'B47',
-        power: 190,
-        torque: 400,
-        capacity: 2.0,
-        fuelType: 0,
-        make: {
-          name: 'BMW',
-        },
-      },
-      generation: {
-        name: model,
-        prodFrom: '2019-01-01T00:00:00',
-        prodTo: '2022-12-31T00:00:00',
-        model: {
-          name: model,
-          make: {
-            name: manufacturer,
-          },
-        },
-      },
-      insurance: {
-        company: insuranceProvider,
-        expires: insuranceDeadline.toISOString(),
-        scope: 'OC, AC, NNW',
-        number: insuranceNumber,
-        contactNumber: insurancePhoneNumber,
-      },
-      stateBook: {
+      name,
+      productionYear: parseInt(productionYear, 10),
+      generation,
+      engine,
+      carModelName: model,
+      makeName: manufacturer,
+      vinNumber,
+      book: {
         licensePlate,
-        mileage: parseInt(kilometrage),
-        nextServiceDate: nextServiceCheckupDate.toISOString(),
-        lastServiceMileage: parseInt(kilometrageAtLastOilChange),
+        mileage: parseInt(mileage, 10),
+        nextServiceDate,
+        lastServiceMileage: parseInt(lastServiceMileage, 10),
       },
     }
 
-    console.log(carObject)
-
-    NewCarService(sessionToken, carObject)
-      .then((res) => {
-        console.log('Success', res)
-        setVisible(false)
-        onSuccess()
-      })
-      .catch((error) => {
-        console.log('Error', error)
-      })
+    await dispatch(createNewCar(newCar))
+    setVisible(false)
+    onSuccess()
   }
 
   return (
@@ -109,7 +77,6 @@ const OnboardingModal = ({ sessionToken, visible, setVisible, onSuccess }) => {
             Layout.column,
             Gutters.smallHPadding,
             Gutters.smallVPadding,
-            // { backgroundColor: 'white' },
           ]}
         >
           <ScrollView style={[Layout.fill]}>
@@ -120,6 +87,7 @@ const OnboardingModal = ({ sessionToken, visible, setVisible, onSuccess }) => {
             <Card>
               <Card.Title title="Basic information" />
               <Card.Content>
+                <TextField label={'Name'} value={name} onChangeText={setName} />
                 <TextField
                   label="License plate"
                   value={licensePlate}
@@ -137,6 +105,30 @@ const OnboardingModal = ({ sessionToken, visible, setVisible, onSuccess }) => {
                   value={model}
                   onChangeText={setModel}
                 />
+
+                <TextField
+                  label="Generation"
+                  value={generation}
+                  onChangeText={setGeneration}
+                />
+
+                <TextField
+                  label="Production Year"
+                  value={productionYear}
+                  onChangeText={setProductionYear}
+                />
+
+                <TextField
+                  label="Engine"
+                  value={engine}
+                  onChangeText={setEngine}
+                />
+
+                <TextField
+                  label="Vin number"
+                  value={vinNumber}
+                  onChangeText={setVinNumber}
+                />
               </Card.Content>
             </Card>
 
@@ -145,23 +137,17 @@ const OnboardingModal = ({ sessionToken, visible, setVisible, onSuccess }) => {
               <Card.Content>
                 <TextField
                   label="Kilometrage"
-                  value={kilometrage}
-                  onChangeText={setKilometrage}
+                  value={mileage}
+                  onChangeText={setMileage}
                   keyboardType="numeric"
                   right={'km'}
-                  // render={(props) => (
-                  //   <TextInputMask {...props} mask="[9999999] km" />
-                  // )}
                 />
                 <TextField
                   label="Kilometrage at last oil change"
-                  value={kilometrageAtLastOilChange}
-                  onChangeText={setKilometrageAtLastOilChange}
+                  value={lastServiceMileage}
+                  onChangeText={setLastServiceMileage}
                   keyboardType="numeric"
                   right={<Text>km</Text>}
-                  // render={(props) => (
-                  //   <TextInputMask {...props} mask="[9999999] km" />
-                  // )}
                 />
 
                 <View style={styles.datepickerContainer}>
@@ -175,8 +161,8 @@ const OnboardingModal = ({ sessionToken, visible, setVisible, onSuccess }) => {
                     Next service checkup date:
                   </Text>
                   <DatePicker
-                    date={nextServiceCheckupDate}
-                    onDateChange={setNextServiceCheckupDate}
+                    date={nextServiceDate}
+                    onDateChange={setNextServiceDate}
                     style={{ alignSelf: 'center' }}
                     mode="date"
                   />

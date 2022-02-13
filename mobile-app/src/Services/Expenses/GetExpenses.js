@@ -1,17 +1,13 @@
 import api, { handleError } from '@/Services'
 
-export default async (sessionToken, carId) => {
-  if (!sessionToken) {
-    return handleError({ message: 'Session token is required' })
-  }
-
+export default async (carId) => {
   if (!carId) {
     return handleError({ message: 'CarId is required' })
   }
 
-  const response = await api.get(`Expense/${carId}`, {
-    headers: { 'x-auth-token': sessionToken },
-  })
+  const response = await api.get(`/spendings/${carId}`)
+
+  console.log('ex response', response)
 
   return response.data
 }

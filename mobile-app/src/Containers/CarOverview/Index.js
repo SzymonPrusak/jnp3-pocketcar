@@ -1,12 +1,19 @@
 import { Alert, Dimensions, ScrollView, Text, View } from 'react-native'
-import { GetCarsService, UpdateCarService } from '@/Services/Cars'
-import { Modal, Portal } from 'react-native-paper'
+import { Button, Modal, Portal } from 'react-native-paper'
 import { OnboardingModal, SingleTile } from '@/Components'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import {
+  carSelector,
+  expensesSelector,
+  fetchCars,
+  fetchExpenses,
+} from '../../Store/Cars'
 import { useDispatch, useSelector } from 'react-redux'
 
-import Car from '@/Store/User/Car'
+import { CarSelectModal } from '../../Components'
+import { UpdateCarService } from '@/Services/Cars'
 import dayjs from 'dayjs'
+import { logout } from '../../Store/Auth'
 import { useTheme } from '@/Theme'
 
 const window = Dimensions.get('window')
@@ -14,47 +21,40 @@ const window = Dimensions.get('window')
 const CarOverviewContainer = ({ navigation }) => {
   const { Gutters, Layout, MetricsSizes } = useTheme()
 
-  const sessionToken = useSelector((state) => state.user.sessionToken)
-  const car = useSelector((state) => state.user.car)
-  const expenses = useSelector((state) => state.user.expenses)
+  const loadedCars = useSelector((state) => state.cars.loadingFulfilled)
+  const car = useSelector(carSelector)
+  const expenses = useSelector(expensesSelector)
 
   const dispatch = useDispatch()
 
   const totalExpensesIn = (expenses_, year) => {
     const start = year
-      ? dayjs().startOf('year').format('YYYY-MM-DD')
-      : dayjs().startOf('month').format('YYYY-MM-DD')
+      ? dayjs().startOf('year').toDate()
+      : dayjs().startOf('month').toDate()
 
     return expenses_.reduce(
-      (prev, curr) =>
-        curr.timestamp >= start ? prev + curr.items[0].price : prev,
+      (prev, curr) => (new Date(curr.date) >= start ? prev + curr.cost : prev),
       0,
     )
   }
 
   const [onboardingModalVisible, setOnboardingModalVisible] = useState(false)
+  const [carSelectModalVisible, setCarSelectModalVisible] = useState(false)
   const [editModalVisible, setEditModalVisible] = useState(false)
 
   useEffect(() => {
-    if (sessionToken == null) {
-      console.log('User is not logged in')
+    dispatch(fetchCars())
+    dispatch(fetchExpenses())
+  }, [dispatch])
+
+  useEffect(() => {
+    if (loadedCars && !car) {
+      setOnboardingModalVisible(true)
     }
-
-    fetchCars()
-  }, [sessionToken, fetchCars])
-
-  const fetchCars = useCallback(() => {
-    GetCarsService(sessionToken).then((cars) => {
-      if (cars.length === 0) {
-        setOnboardingModalVisible(true)
-      } else {
-        dispatch(Car.action({ car: cars[0] }))
-      }
-    })
-  }, [dispatch, sessionToken])
+  }, [loadedCars, car])
 
   const updateCar = (carObj) => {
-    UpdateCarService(sessionToken, carObj).then(fetchCars)
+    UpdateCarService(carObj).then(fetchCars)
   }
 
   const onKilometrageTilePress = () => {
@@ -113,12 +113,8 @@ const CarOverviewContainer = ({ navigation }) => {
         onPress: (newDate) => {
           const carCopy = JSON.parse(JSON.stringify(car))
 
-          carCopy.engine.id = null
-          carCopy.engine.make.id = null
-          carCopy.generation.id = null
-          carCopy.generation.model.id = null
-          carCopy.generation.model.make.id = null
-          carCopy.stateBook.nextServiceDate = newDate
+          carCopy.book.nextServiceDate = newDate
+
           updateCar(carCopy)
         },
       },
@@ -133,15 +129,11 @@ const CarOverviewContainer = ({ navigation }) => {
       },
       {
         text: 'Update',
-        onPress: (newKilometrage) => {
+        onPress: (newMileage) => {
           const carCopy = JSON.parse(JSON.stringify(car))
 
-          carCopy.engine.id = null
-          carCopy.engine.make.id = null
-          carCopy.generation.id = null
-          carCopy.generation.model.id = null
-          carCopy.generation.model.make.id = null
-          carCopy.stateBook.lastServiceMileage = parseInt(newKilometrage)
+          carCopy.book.lastServiceMileage = newMileage
+
           updateCar(carCopy)
         },
       },
@@ -182,8 +174,26 @@ const CarOverviewContainer = ({ navigation }) => {
     }
   }
 
-  // const tileBorderWidth = useMemo(() => window.width / 2 - MetricsSizes.tiny, [MetricsSizes.tiny])
   const tileBorderWidth = window.width / 2 - MetricsSizes.tiny
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <Button color={'red'} mode={'text'} onPress={() => dispatch(logout())}>
+          Log out
+        </Button>
+      ),
+      headerRight: () => (
+        <Button
+          color={'blue'}
+          mode={'text'}
+          onPress={() => setCarSelectModalVisible(true)}
+        >
+          my cars
+        </Button>
+      ),
+    })
+  }, [navigation, dispatch])
 
   return (
     <ScrollView>
@@ -200,10 +210,10 @@ const CarOverviewContainer = ({ navigation }) => {
           <SingleTile
             width={tileBorderWidth}
             height={tileBorderWidth}
-            topTitle={car?.generation?.model?.name}
-            topSubtitle={car?.generation?.model?.make?.name}
+            topTitle={car.carModelName}
+            topSubtitle={car.makeName}
             bottomSubtitle={'Kilometrage'}
-            bottomTitle={`${car?.stateBook?.mileage} km`}
+            bottomTitle={`${car?.book.mileage.toString()} km`}
             onPress={() => navigation.navigate('CarDetails')}
             onLongPress={onKilometrageTilePress}
           />
@@ -223,24 +233,24 @@ const CarOverviewContainer = ({ navigation }) => {
           />
         )}
 
-        {car?.stateBook && (
+        {car?.book && (
           <SingleTile
             width={tileBorderWidth}
             height={tileBorderWidth}
             topTitle={'Next Service checkup'}
-            bottomTitle={car?.stateBook?.nextServiceDate?.substring(0, 10)}
-            bottomTitleColor={colorForDate(car?.stateBook?.nextServiceDate)}
+            bottomTitle={car?.book.nextServiceDate?.substring(0, 10)}
+            bottomTitleColor={colorForDate(car?.book.nextServiceDate)}
             onLongPress={onServiceTilePress}
           />
         )}
 
-        {car?.stateBook && (
+        {car?.book && (
           <SingleTile
             width={tileBorderWidth}
             height={tileBorderWidth}
             topTitle={'Last oil change'}
             bottomSubtitle={'At kilometrage'}
-            bottomTitle={`${car?.stateBook?.lastServiceMileage} km`}
+            bottomTitle={`${car?.book?.lastServiceMileage.toString()} km`}
             bottomTitleColor={colorForOilKilometrage(
               car?.stateBook?.lastServiceMileage,
             )}
@@ -268,8 +278,15 @@ const CarOverviewContainer = ({ navigation }) => {
       <OnboardingModal
         visible={onboardingModalVisible}
         setVisible={setOnboardingModalVisible}
-        sessionToken={sessionToken}
         onSuccess={fetchCars}
+      />
+      <CarSelectModal
+        visible={carSelectModalVisible}
+        setVisible={setCarSelectModalVisible}
+        onAddNewCarPress={() => {
+          setCarSelectModalVisible(false)
+          setOnboardingModalVisible(true)
+        }}
       />
       <Portal>
         <Modal
@@ -277,7 +294,7 @@ const CarOverviewContainer = ({ navigation }) => {
           onDismiss={() => setEditModalVisible(false)}
           contentContainerStyle={{ backgroundColor: 'white', padding: 20 }}
         >
-          <Text>Dupa</Text>
+          <Text>test</Text>
         </Modal>
       </Portal>
     </ScrollView>

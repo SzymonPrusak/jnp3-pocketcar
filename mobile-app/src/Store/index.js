@@ -1,25 +1,29 @@
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { combineReducers } from 'redux'
 import {
-  persistReducer,
-  persistStore,
   FLUSH,
-  REHYDRATE,
   PAUSE,
   PERSIST,
   PURGE,
   REGISTER,
+  REHYDRATE,
+  persistReducer,
+  persistStore,
 } from 'redux-persist'
-import { configureStore } from '@reduxjs/toolkit'
 
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { authSliceReducer } from './Auth'
+import cars from './Cars'
+import { combineReducers } from 'redux'
+import { configureStore } from '@reduxjs/toolkit'
 import startup from './Startup'
-import user from './User'
 import theme from './Theme'
+import user from './User'
 
 const reducers = combineReducers({
   startup,
   user,
   theme,
+  authSlice: authSliceReducer,
+  cars,
 })
 
 const persistConfig = {

@@ -2,6 +2,7 @@ import { Button, TextInput } from 'react-native-paper'
 import { Dimensions, LayoutAnimation, Text, View } from 'react-native'
 import { LoginUserService, RegisterUserService } from '@/Services/User'
 import React, { useState } from 'react'
+import { loginUser, registerUser } from '../../Store/Auth'
 
 import SessionToken from '@/Store/User/SessionToken'
 import { SingleTile } from '@/Components'
@@ -27,20 +28,14 @@ const AuthenticationContainer = () => {
   const onContinueButtonPress = async () => {
     console.log(login, email, password)
 
-    let res
-
     try {
       if (signInMode) {
-        res = await LoginUserService(login, password)
+        dispatch(loginUser({ login, password }))
       } else {
-        res = await RegisterUserService(login, email, password)
+        dispatch(registerUser({ login, email, password }))
       }
     } catch (e) {
       setError(true)
-    }
-
-    if (res != null && res.token) {
-      dispatch(SessionToken.action({ sessionToken: res.token }))
     }
   }
 

@@ -1,8 +1,9 @@
+import { Appbar, Chip, TextInput } from 'react-native-paper'
+import { Modal, ScrollView, View } from 'react-native'
 import React, { useState } from 'react'
-import { Modal, View, ScrollView } from 'react-native'
-import { useTheme } from '@/Theme'
-import { Appbar, TextInput, Chip } from 'react-native-paper'
+
 import dayjs from 'dayjs'
+import { useTheme } from '@/Theme'
 
 const NewExpenseModal = ({ visible, setVisible, onExpenseAdd }) => {
   const { Layout, Gutters, Common } = useTheme()
@@ -14,16 +15,9 @@ const NewExpenseModal = ({ visible, setVisible, onExpenseAdd }) => {
 
   const onAddPress = () => {
     const expenseObj = {
-      timestamp: date,
-      name: type,
-      items: [
-        {
-          name,
-          description: '',
-          quantity: 0,
-          price: cost,
-        },
-      ],
+      name,
+      cost,
+      date,
     }
 
     onExpenseAdd(expenseObj)
