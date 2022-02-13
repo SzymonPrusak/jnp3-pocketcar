@@ -16,7 +16,7 @@ if (!db) {
   console.log('Db connected successfully');
 }
 
-app.use('/api', router)
+app.use('/spendings', router)
 
 app.get('/', (_, res) => {
   res.send('Server is up!');
