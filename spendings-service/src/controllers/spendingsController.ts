@@ -1,10 +1,28 @@
 import { Request, Response } from 'express';
 import { SpendingModel } from '../model/spendingModel';
 import { validateAddSpending, validateUpdateSpending } from '../utils/spendingSchema';
+import axios from 'axios'
+
+async function getAcces(carId: string, isIntegration: boolean) {
+  try {
+    const response = await axios.get('access/' + carId + '?userOnly=true')
+    if(isIntegration) {
+      return response.data.role !== 'viewer' && response.status === 200;
+    }
+    return response.status === 200;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+}
 
 export class SpendingsController {
   public static getSpendings(req: Request, res: Response) {
     const { carId } = req.params;
+
+    if(!getAcces(carId, false)) {
+      return res.status(403).send({ message: "You don not have permission" });
+    }
 
     SpendingModel.find({carId}, (err, results) => {
       if(err) {
@@ -16,6 +34,13 @@ export class SpendingsController {
 
   public static addSpending(req: Request, res: Response) {
     const { error, value } = validateAddSpending(req.body);
+    const { carId } = req.params;
+
+    if(!getAcces(carId, true)) {
+      res.status(403).send({ message: "You don not have permission" });
+      return;
+    }
+
     if (error) {
       res.status(400).send({ message: error });
       return;
@@ -43,6 +68,12 @@ export class SpendingsController {
 
   public static updateSpending(req: Request, res: Response) {
     const { error, value } = validateUpdateSpending(req.body);
+    const { carId } = req.params;
+    if(!getAcces(carId, true)) {
+      res.status(403).send({ message: "You don not have permission" });
+      return;
+    }
+
     if (error) {
       res.status(400).send({ message: error });
       return;
@@ -54,6 +85,11 @@ export class SpendingsController {
 
   public static deleteSpending(req: Request, res: Response) {
     const { carId } = req.params;
+
+    if(!getAcces(carId, true)) {
+      res.status(403).send({ message: "You don not have permission" });
+      return;
+    }
 
     SpendingModel.findOneAndDelete({carId}, function (err) {
       if (err) {
