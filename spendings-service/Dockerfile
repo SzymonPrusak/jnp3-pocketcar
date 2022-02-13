@@ -8,5 +8,6 @@ COPY . .
 RUN npm install
 RUN npm run build
 
-EXPOSE 3005
+ENV HTTP_PORT=3000
+EXPOSE 3000
 CMD [ "npm", "start" ]

@@ -1,7 +1,7 @@
 version: "3.9"
 
 networks:
-  system_network:
+  service_network:
   event_network:
   auth_network:
   cars_network:
@@ -39,6 +39,7 @@ services:
       - auth_database
       - event_redis
     networks:
+      - service_network
       - event_network
       - auth_network
     environment:
@@ -47,7 +48,7 @@ services:
       DATABASE_USERNAME: root
       DATABASE_PASSWORD: password
       EVENT_REDIS_HOST: event_redis
-      NOTIFICATION_SERVICE_HOST: notification:3003
+      NOTIFICATION_SERVICE_HOST: notification_balancer:8080
   auth_balancer:
     image: nginx
     restart: always
@@ -58,7 +59,7 @@ services:
     volumes:
       - ./auth-balancer/nginx.conf:/etc/nginx/nginx.conf:ro
     networks:
-      - system_network
+      - service_network
       - auth_network
 
   cars_database:
@@ -82,10 +83,8 @@ services:
       - cars_database
       - cars_redis
       - event_redis
-    ports:
-      - "3001:3001"
     networks:
-      - system_network
+      - service_network
       - event_network
       - cars_network
     environment:
@@ -95,7 +94,18 @@ services:
       DATABASE_PASSWORD: password
       CACHE_REDIS_HOST: cars_redis
       EVENT_REDIS_HOST: event_redis
-      HTTP_PORT: 3001
+  cars_balancer:
+    image: nginx
+    restart: always
+    depends_on:
+      - cars
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./cars-balancer/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - service_network
+      - cars_network
 
   notification_database:
     image: mongo
@@ -112,10 +122,8 @@ services:
     depends_on:
       - notification_database
       - event_redis
-    ports:
-      - "3003:3003"
     networks:
-      - system_network
+      - service_network
       - event_network
       - notification_network
     environment:
@@ -124,7 +132,18 @@ services:
       DATABASE_USERNAME: root
       DATABASE_PASSWORD: password
       EVENT_REDIS_HOST: event_redis
-      HTTP_PORT: 3003
+  notification_balancer:
+    image: nginx
+    restart: always
+    depends_on:
+      - notification
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./notification-balancer/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - service_network
+      - notification_network
 
   insurance_database:
     image: mongo
@@ -140,17 +159,26 @@ services:
     build: ./insurance-service
     depends_on:
       - insurance_database
-    ports:
-      - "3004:3004"
     networks:
-      - system_network
+      - service_network
       - insurance_network
     environment:
       NODE_ENV: development
       DATABASE_HOST: insurance_database
       DATABASE_USERNAME: root
       DATABASE_PASSWORD: password
-      HTTP_PORT: 3004
+  insurance_balancer:
+    image: nginx
+    restart: always
+    depends_on:
+      - insurance
+    ports:
+      - "8083:8080"
+    volumes:
+      - ./insurance-balancer/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - service_network
+      - insurance_network
 
   spendings_database:
     image: mongo
@@ -166,14 +194,23 @@ services:
     build: ./spendings-service
     depends_on:
       - spendings_database
-    ports:
-      - "3005:3005"
     networks:
-      - system_network
+      - service_network
       - spendings_network
     environment:
       NODE_ENV: development
       DATABASE_HOST: spendings_database
       DATABASE_USERNAME: root
       DATABASE_PASSWORD: password
-      HTTP_PORT: 3005
+  spendings_balancer:
+    image: nginx
+    restart: always
+    depends_on:
+      - spendings
+    ports:
+      - "8084:8080"
+    volumes:
+      - ./spendings-balancer/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - service_network
+      - spendings_network
