@@ -4,6 +4,8 @@ export const hosts = {
     dbUsername: process.env.DATABASE_USERNAME ?? 'root',
     dbPassword: process.env.DATABASE_PASSWORD ?? 'password',
   
+    carsServiceHost: process.env.CARS_SERVICE_HOST,
+
     httpPort: process.env.HTTP_PORT ?? 3004
   }
   

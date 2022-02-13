@@ -38,6 +38,7 @@ services:
     depends_on:
       - auth_database
       - event_redis
+      - notification_balancer
     networks:
       - service_network
       - event_network
@@ -159,6 +160,7 @@ services:
     build: ./insurance-service
     depends_on:
       - insurance_database
+      - cars_balancer
     networks:
       - service_network
       - insurance_network
@@ -167,6 +169,7 @@ services:
       DATABASE_HOST: insurance_database
       DATABASE_USERNAME: root
       DATABASE_PASSWORD: password
+      CARS_SERVICE_HOST: cars_balancer:8080
   insurance_balancer:
     image: nginx
     restart: always
@@ -194,6 +197,7 @@ services:
     build: ./spendings-service
     depends_on:
       - spendings_database
+      - cars_balancer
     networks:
       - service_network
       - spendings_network
@@ -202,6 +206,7 @@ services:
       DATABASE_HOST: spendings_database
       DATABASE_USERNAME: root
       DATABASE_PASSWORD: password
+      CARS_SERVICE_HOST: cars_balancer:8080
   spendings_balancer:
     image: nginx
     restart: always

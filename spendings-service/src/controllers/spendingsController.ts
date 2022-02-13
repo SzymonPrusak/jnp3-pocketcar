@@ -2,10 +2,11 @@ import { Request, Response } from 'express';
 import { SpendingModel } from '../model/spendingModel';
 import { validateAddSpending, validateUpdateSpending } from '../utils/spendingSchema';
 import axios from 'axios'
+import { hosts } from '../const/hosts';
 
 async function getAcces(carId: string, isIntegration: boolean) {
   try {
-    const response = await axios.get('access/' + carId + '?userOnly=true')
+    const response = await axios.get(hosts.carsServiceHost + '/access/' + carId + '?userOnly=true')
     if(isIntegration) {
       return response.data.role !== 'viewer' && response.status === 200;
     }
