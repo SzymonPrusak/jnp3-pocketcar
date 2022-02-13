@@ -38,10 +38,7 @@ services:
     depends_on:
       - auth_database
       - event_redis
-    ports:
-      - "3000:3000"
     networks:
-      - system_network
       - event_network
       - auth_network
     environment:
@@ -52,6 +49,18 @@ services:
       EVENT_REDIS_HOST: event_redis
       NOTIFICATION_SERVICE_HOST: notification:3003
       HTTP_PORT: 3000
+  auth_balancer:
+    image: nginx
+    restart: always
+    depends_on:
+      - auth
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./auth-balancer/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - system_network
+      - auth_network
 
   cars_database:
     image: mongo
