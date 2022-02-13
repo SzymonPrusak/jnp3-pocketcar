@@ -17,6 +17,27 @@ services:
     restart: always
     ports:
       - 7001:6379
+  auth_database:
+    image: mongo
+    restart: always
+    ports:
+      - 8000:27017
+    volumes:
+      - auth_database_vol:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+  auth:
+    build: ./auth-service
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      DATABASE_HOST: auth_database
+      DATABASE_USERNAME: root
+      DATABASE_PASSWORD: password
+      EVENT_REDIS_HOST: event_redis
+      NOTIFICATION_SERVICE_HOST: notification:3003
   cars_database:
     image: mongo
     restart: always
@@ -42,4 +63,24 @@ services:
       DATABASE_USERNAME: root
       DATABASE_PASSWORD: password
       CACHE_REDIS_HOST: cars_redis
+      EVENT_REDIS_HOST: event_redis
+  notification_database:
+    image: mongo
+    restart: always
+    ports:
+      - 8002:27017
+    volumes:
+      - notification_database_vol:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+  notification:
+    build: ./notification-service
+    ports:
+      - "3003:3003"
+    environment:
+      NODE_ENV: development
+      DATABASE_HOST: notification_database
+      DATABASE_USERNAME: root
+      DATABASE_PASSWORD: password
       EVENT_REDIS_HOST: event_redis
