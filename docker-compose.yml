@@ -35,6 +35,9 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: password
   auth:
     build: ./auth-service
+    depends_on:
+      - auth_database
+      - event_redis
     ports:
       - "3000:3000"
     networks:
@@ -67,6 +70,10 @@ services:
       - cars_network
   cars:
     build: ./cars-service
+    depends_on:
+      - cars_database
+      - cars_redis
+      - event_redis
     ports:
       - "3001:3001"
     networks:
@@ -94,6 +101,9 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: password
   notification:
     build: ./notification-service
+    depends_on:
+      - notification_database
+      - event_redis
     ports:
       - "3003:3003"
     networks:
@@ -120,6 +130,8 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: password
   insurance:
     build: ./insurance-service
+    depends_on:
+      - insurance_database
     ports:
       - "3004:3004"
     networks:
@@ -144,6 +156,8 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: password
   spendings:
     build: ./spendings-service
+    depends_on:
+      - spendings_database
     ports:
       - "3005:3005"
     networks:
