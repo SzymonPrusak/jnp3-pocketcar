@@ -52,6 +52,7 @@ export class SpendingsController {
       cost: value.cost,
       carId: value.carId,
       date: value.date,
+      type: value.type
     });
 
     spending.save((err, car) => {

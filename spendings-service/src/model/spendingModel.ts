@@ -5,6 +5,7 @@ interface Spending extends Document {
   cost: number;
   carId: string;
   date: Date;
+  type: string
 }
 
 const spendingSchema = new Schema<Spending>({
@@ -12,6 +13,7 @@ const spendingSchema = new Schema<Spending>({
   cost: { type: Number, required: true},
   carId: { type: String, required: true },
   date: { type: Date, required: true },
+  type: { type: String, required: true }
 });
 
 export const SpendingModel = model<Spending>('Spending', spendingSchema);
