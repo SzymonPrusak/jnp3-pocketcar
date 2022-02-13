@@ -17,6 +17,7 @@ services:
     restart: always
     ports:
       - 7001:6379
+
   auth_database:
     image: mongo
     restart: always
@@ -38,6 +39,7 @@ services:
       DATABASE_PASSWORD: password
       EVENT_REDIS_HOST: event_redis
       NOTIFICATION_SERVICE_HOST: notification:3003
+
   cars_database:
     image: mongo
     restart: always
@@ -64,6 +66,7 @@ services:
       DATABASE_PASSWORD: password
       CACHE_REDIS_HOST: cars_redis
       EVENT_REDIS_HOST: event_redis
+
   notification_database:
     image: mongo
     restart: always
@@ -84,6 +87,17 @@ services:
       DATABASE_USERNAME: root
       DATABASE_PASSWORD: password
       EVENT_REDIS_HOST: event_redis
+
+  insurance_database:
+    image: mongo
+    restart: always
+    ports:
+      - 8003:27017
+    volumes:
+      - insurance_database_vol:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
   insurance:
     build: ./insurance-service
     ports:
@@ -93,8 +107,19 @@ services:
       DATABASE_HOST: insurance_database
       DATABASE_USERNAME: root
       DATABASE_PASSWORD: password
-  spednings:
-    build: ./spenndings-service
+
+  spendings_database:
+    image: mongo
+    restart: always
+    ports:
+      - 8004:27017
+    volumes:
+      - spendings_database_vol:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+  spendings:
+    build: ./spendings-service
     ports:
       - "3005:3005"
     environment:

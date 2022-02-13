@@ -8,4 +8,4 @@ export const hosts = {
   eventRedisHost: process.env.EVENT_REDIS_HOST ?? '192.168.80.128:7001',
 
   httpPort: process.env.HTTP_PORT ?? 3001
-}
+};
