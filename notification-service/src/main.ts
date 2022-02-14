@@ -29,7 +29,8 @@ app.listen(hosts.httpPort);
 
 eventRedisClient.subscribe('registration', (msg, ch) => {
   console.log(ch + " " + msg);
-  NotificationChannelModel.findOne({userId: msg._id}, undefined, undefined, (err, result) => {
+  const newMsg = JSON.parse(msg)
+  NotificationChannelModel.findOne({userId: newMsg._id}, undefined, undefined, (err, result) => {
     if(err || !result) {
       console.log(err)
       return;
@@ -40,7 +41,8 @@ eventRedisClient.subscribe('registration', (msg, ch) => {
 
 eventRedisClient.subscribe('car_added', (msg, ch) => {
   console.log(ch + " " + msg);
-  NotificationChannelModel.findOne({userId: msg._id, name: 'email', isEnabled: true}, undefined, undefined, (err, result) => {
+  const newMsg = JSON.parse(msg)
+  NotificationChannelModel.findOne({userId: newMsg._id, name: 'email', isEnabled: true}, undefined, undefined, (err, result) => {
     if(err || !result) {
       console.log(err)
       return;
