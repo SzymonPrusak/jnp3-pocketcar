@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-mongoose.connect(`mongodb://${hosts.dbUsername}:${hosts.dbPassword}@${hosts.dbHost}`);
+mongoose.connect(`mongodb://${hosts.dbHost}`);
 const db = mongoose.connection;
 
 if (!db) {

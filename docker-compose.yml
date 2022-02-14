@@ -11,7 +11,9 @@ networks:
 
 volumes:
   auth_database_vol:
-  cars_database_vol:
+  cars_database_cfg_vol:
+  cars_database_shard1_vol:
+  cars_database_shard2_vol:
   insurance_database_vol:
   notification_database_vol:
   spendings_database_vol:
@@ -63,16 +65,57 @@ services:
       - service_network
       - auth_network
 
-  cars_database:
-    image: mongo
+  cars_database_cfg:
+    build: ./cars-database-cfg
+    command: mongod --configsvr --replSet cfg_set --bind_ip 0.0.0.0 --port 27017
     restart: always
     volumes:
-      - cars_database_vol:/data/db
+      - cars_database_cfg_vol:/data/db
     networks:
       - cars_network
+    expose:
+      - "27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: password
+      - REPSET_NAME=cfg_set
+      - REPLICA_NAME=cars_database_cfg
+  cars_database_shard1:
+    build: ./cars-database-shard
+    command: mongod --shardsvr --replSet shard1_set --bind_ip 0.0.0.0 --port 27017
+    restart: always
+    volumes:
+      - cars_database_shard1_vol:/data/db
+    networks:
+      - cars_network
+    expose:
+      - "27017"
+    environment:
+      - REPSET_NAME=shard1_set
+      - REPLICA_NAME=cars_database_shard1
+  cars_database_shard2:
+    build: ./cars-database-shard
+    command: mongod --shardsvr --replSet shard2_set --bind_ip 0.0.0.0 --port 27017
+    restart: always
+    volumes:
+      - cars_database_shard2_vol:/data/db
+    networks:
+      - cars_network
+    expose:
+      - "27017"
+    environment:
+      - REPSET_NAME=shard2_set
+      - REPLICA_NAME=cars_database_shard2
+  cars_database:
+    build: ./cars-database-master
+    command: mongos --configdb cfg_set/cars_database_cfg:27017 --bind_ip 0.0.0.0 --port 27017
+    restart: always
+    depends_on:
+      - cars_database_cfg
+      - cars_database_shard1
+      - cars_database_shard2
+    expose:
+      - "27017"
+    networks:
+      - cars_network
   cars_redis:
     image: redis
     restart: always
@@ -80,6 +123,8 @@ services:
       - cars_network
   cars:
     build: ./cars-service
+    deploy:
+      replicas: 3
     depends_on:
       - cars_database
       - cars_redis
