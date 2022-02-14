@@ -1,10 +1,15 @@
 import 'react-native-gesture-handler'
-import React from 'react'
-import { Provider } from 'react-redux'
-import { PersistGate } from 'redux-persist/lib/integration/react'
-import { store, persistor } from '@/Store'
-import { ApplicationNavigator } from '@/Navigators'
 import './Translations'
+
+import { persistor, store } from '@/Store'
+
+import { ApplicationNavigator } from '@/Navigators'
+import { LogBox } from 'react-native'
+import { PersistGate } from 'redux-persist/lib/integration/react'
+import { Provider } from 'react-redux'
+import React from 'react'
+
+LogBox.ignoreAllLogs(true)
 
 const App = () => (
   <Provider store={store}>
