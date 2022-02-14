@@ -29,7 +29,7 @@ const ExpensesContainer = () => {
       date={item.timestamp}
       title={item.name}
       value={item.cost}
-      // type={item.name}
+      type={item.type}
     />
   )
 
@@ -101,10 +101,10 @@ const ExpensesContainer = () => {
             return true
           }
 
-          return type === expense.name
+          return type === expense.type
         })}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item._id}
       />
       <FAB
         style={styles.fab}

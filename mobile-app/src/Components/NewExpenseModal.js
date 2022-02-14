@@ -21,6 +21,8 @@ const NewExpenseModal = ({ visible, setVisible, onExpenseAdd }) => {
       type,
     }
 
+    console.log(expenseObj)
+
     onExpenseAdd(expenseObj)
     setVisible(false)
 

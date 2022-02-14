@@ -2,6 +2,7 @@ import { LoginUserService, RegisterUserService } from '../../Services/User'
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { reset } from '../Cars'
 
 export const loginUser = createAsyncThunk(
   'authSlice/loginUser',
@@ -37,9 +38,14 @@ export const registerUser = createAsyncThunk(
   },
 )
 
-export const logout = createAsyncThunk('authSlice/logout', async () => {
-  await AsyncStorage.removeItem('sessionToken')
-})
+export const logout = createAsyncThunk(
+  'authSlice/logout',
+  async (_, thunkApi) => {
+    await AsyncStorage.removeItem('sessionToken')
+
+    thunkApi.dispatch(reset())
+  },
+)
 
 const authSlice = createSlice({
   name: 'authSlice',

@@ -79,6 +79,7 @@ export const carsSlice = createSlice({
     setCurrentCarId: (state, action) => {
       state.currentCarId = action.payload
     },
+    reset: () => initialState,
   },
   extraReducers: (builder) => {
     builder.addCase(fetchCars.fulfilled, (state, action) => {
@@ -110,7 +111,7 @@ export default carsSlice.reducer
 
 export const carsSelector = (state) => state.cars
 
-export const { setCurrentCarId } = carsSlice.actions
+export const { setCurrentCarId, reset } = carsSlice.actions
 
 export const carSelector = createSelector(
   carsSelector,
